@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>WebDAV Navigator JS demo</title>
+</head>
+<body>
+
+	<form method="post" action="">
+		<fieldset>
+			<legend>Open Navigator</legend>
+			<dl>
+				<dt><label for="f_url">WebDAV URL</label></dt>
+				<dd><input type="url" id="f_url" required="required" /></dd>
+				<dt><label for="f_user">User login</label></dt>
+				<dd><input type="text" id="f_user" required="required" /></dd>
+				<dt><label for="f_password">User password</label></dt>
+				<dd><input type="password" id="f_password" required="required" /></dd>
+				<dd>Note: your credentials are not stored anywhere.</dd>
+			</dl>
+			<p><input type="submit" value="Connect" /></p>
+		</fieldset>
+	</form>
+
+	<script type="text/javascript" src="webdav.js"></script>
+	<script type="text/javascript">
+	var s = window.sessionStorage;
+	var url = document.getElementById('f_url');
+	var user = document.getElementById('f_user');
+	var password = document.getElementById('f_password');
+
+	if (s) {
+		url.value = s.getItem('url');
+		user.value = s.getItem('user');
+	}
+
+	document.forms[0].onsubmit = () => {
+		var _url = url.value.trim(), _user = user.value.trim();
+		s.setItem('url', _url);
+		s.setItem('user', _user);
+		try {
+			WebDAVNavigator(_url, _user, password.value.trim());
+		}
+		catch (e) {
+			console.error(e);
+			alert(e);
+		}
+		return false;
+	};
+	</script>
+
+</body>
+</html>

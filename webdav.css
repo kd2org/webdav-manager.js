@@ -1,0 +1,244 @@
+body {
+	text-align: center;
+	font-size: 1.1em;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+table {
+	margin: 2em auto;
+	border-collapse: collapse;
+	width: 90%;
+}
+
+th, td {
+	padding: .5em;
+	text-align: left;
+	border: 2px solid #ccc;
+}
+
+td.thumb {
+	width: 5%;
+}
+
+td.buttons {
+	text-align: right;
+	width: 20em;
+}
+
+td.buttons div {
+	display: flex;
+	flex-direction: row-reverse;
+}
+
+table tr:nth-child(even) {
+	background: #eee;
+}
+
+.icon {
+	width: 48px;
+	height: 48px;
+	display: block;
+	border-radius: .2em;
+	background: #999;
+	overflow: hidden;
+	color: #fff;
+	text-align: center;
+}
+
+.icon b {
+	font-weight: normal;
+	display: inline-block;
+	transform: rotate(-30deg);
+	line-height: 48px;
+}
+
+.icon.JPEG, .icon.PNG, .icon.JPG, .icon.GIF, .icon.SVG, .icon.WEBP {
+	background: #966;
+}
+
+.icon.TXT, .icon.MD {
+	background: #669;
+}
+
+.icon.PDF {
+	background: #969;
+}
+
+.icon.dir {
+	background: #ccc;
+	color: #000;
+}
+
+.icon.dir b {
+	font-size: 40px;
+	transform: none;
+}
+
+.size {
+	text-align: right;
+}
+
+input[type=button], input[type=submit], .btn {
+	font-size: 1.2em;
+	padding: .3em .5em;
+	margin: .2em .3em;
+	border: none;
+	background: #ccc;
+	border-radius: .2em;
+	cursor: pointer;
+	text-decoration: none;
+	color: #000;
+	font-family: inherit;
+}
+
+td input[type=button], td input[type=submit], td .btn {
+	font-size: 1em;
+}
+
+input[type=text], textarea {
+	font-size: 1.2em;
+	padding: .3em .5em;
+	border: none;
+	background: #fff;
+	border-radius: .2em;
+	width: calc(100% - 1em);
+}
+
+input:focus, textarea:focus {
+	box-shadow: 0px 0px 5px blue;
+	outline: 1px solid #999;
+}
+
+input[type=button]:hover, input[type=submit]:hover, .btn:hover {
+	color: darkred;
+	text-decoration: underline;
+	background: #fff;
+	box-shadow: 0px 0px 5px #000;
+}
+
+.close {
+	text-align: right;
+	margin: 0;
+}
+
+.close input {
+	font-size: .8em;
+}
+
+input[type=submit] {
+	float: right;
+}
+
+dialog {
+	position: fixed;
+	top: 1em;
+	right: 1em;
+	bottom: 1em;
+	left: 1em;
+	box-shadow: 0px 0px 5px #000;
+	background: #eee;
+	border: none;
+	border-radius: .5em;
+}
+
+dialog form div {
+	clear: both;
+	margin: 2em 0;
+	text-align: center;
+}
+
+.upload {
+	margin: 1em 0;
+}
+
+#mdp div, #mdp textarea {
+	width: calc(100% - 1em);
+	padding: .5em;
+	font-size: 1em;
+	height: calc(100% - 1em);
+	text-align: left;
+	margin: 0;
+}
+
+#md {
+	overflow: hidden;
+	overflow-x: auto;
+}
+
+#mdp {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-gap: .2em;
+	background: #ddd;
+	height: 82vh;
+}
+
+dialog.preview {
+	height: calc(100%);
+	width: calc(100%);
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	padding: 0;
+	border-radius: 0;
+	background: #ddd;
+	overflow: hidden;
+}
+
+iframe, .md_preview {
+	overflow: auto;
+	position: absolute;
+	top: 2em;
+	left: 0;
+	width: calc(100vw);
+	height: calc(100% - 2em);
+	padding: 0;
+	margin: 0;
+	border: none;
+}
+
+.preview form {
+	height: calc(100% - 2em);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.preview form > div {
+	height: 100%;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.md_preview {
+	width: calc(100vw - 2em);
+	height: calc(100vh - 2em);
+	padding: 1em;
+	text-align: left;
+}
+
+.preview .close {
+	height: 2em;
+	text-align: center;
+	font-size: 1em;
+	display: block;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	border-radius: 0;
+	background: #fff;
+	color: #000;
+	box-shadow: 0px 0px 5px #000;
+}
+
+.preview img {
+	max-width: 95%;
+	max-height: 95%;
+}
+
+input[name=rename], input[name=paste_name] {
+	width: 30em;
+}
