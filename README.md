@@ -26,10 +26,11 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 
 ## Compatibility
 
-This has been tested with:
+This has been tested with the following servers:
 
 * [KaraDAV](https://github.com/kd2org/karadav/)
 * Apache 2.4 mod_dav
+* NextCloud
 
 ## Demo
 
