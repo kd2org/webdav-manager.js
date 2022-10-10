@@ -2,6 +2,8 @@
 
 This is drop-in JS client that you can use to enhance the web interface of a WebDAV file server. Or you can use it on your computer to access any WebDAV server without installing anything.
 
+![](https://kd2org.github.io/webdav-manager.js/scr_1.jpg) ![](https://kd2org.github.io/webdav-manager.js/scr_2.jpg)
+
 ## Features
 
 * Create new directories
@@ -28,6 +30,12 @@ This has been tested with:
 * Apache 2.4 mod_dav
 
 ## Demo
+
+You can try the demo live at [https://kd2org.github.io/webdav-manager.js/demo.html](https://kd2org.github.io/webdav-manager.js/demo.html).
+
+You can review the source code in this repo: the password is never stored, and only sent to the WebDAV server as part of basic auth.
+
+This demo will only work with a WebDAV server that allows cross-origin requests (see section on CORS below).
 
 ## Install as the client for your WebDAV server
 
