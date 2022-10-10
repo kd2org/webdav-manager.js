@@ -17,6 +17,8 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 * [MarkDown live preview when editing MarkDown files](https://kd2org.github.io/webdav-manager.js/scr_1.jpg)
 * Download files
 * Localization support
+* Only 8KB gzipped!
+* Single file, self-contained, no dependencies, no silly NPM stuff!
 
 ### Planned features
 
