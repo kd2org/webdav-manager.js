@@ -1,3 +1,5 @@
+var css_url = document.currentScript.src.replace(/\/[^\/]+$/, '') + '/webdav.css';
+
 const WebDAVNavigator = (url, user, password) => {
 	// Microdown
 	// https://github.com/commit-intl/micro-down
@@ -21,8 +23,8 @@ const WebDAVNavigator = (url, user, password) => {
 	const dialog_tpl = `<dialog open><p class="close"><input type="button" value="&#x2716; Close" class="close" /></p><form><div>%s</div>%b</form></dialog>`;
 
 	const html_tpl = `<!DOCTYPE html><html>
-		<head><title>Files</title><link rel="stylesheet" type="text/css" href="/webdav.css" /></head>
-		<body></html>`;
+		<head><title>Files</title><link rel="stylesheet" type="text/css" href="${css_url}" /></head>
+		<body><main></main><div class="bg"></div></body></html>`;
 
 	const body_tpl = `<h1>%title%</h1>
 		<div class="upload">
@@ -57,7 +59,15 @@ const WebDAVNavigator = (url, user, password) => {
 	};
 
 	const reqAndReload = (method, url, body, headers) => {
-		req(method, url, body, headers).then((r) => reloadListing());
+		animateLoading();
+		req(method, url, body, headers).then(r => {
+			stopLoading();
+			if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+			reloadListing();
+		}).catch(e => {
+			console.log(e);
+			alert(e);
+		});
 		return false;
 	};
 
@@ -92,6 +102,7 @@ const WebDAVNavigator = (url, user, password) => {
 
 	const openDialog = (html, ok_btn = true) => {
 		var tpl = dialog_tpl.replace(/%b/, ok_btn ? '<p><input type="submit" value="OK" /></p>' : '');
+		$('body').classList.add('dialog');
 		$('body').insertAdjacentHTML('beforeend', tpl.replace(/%s/, html));
 		$('.close input').onclick = closeDialog;
 		evt = window.addEventListener('keyup', (e) => {
@@ -103,6 +114,7 @@ const WebDAVNavigator = (url, user, password) => {
 	};
 
 	const closeDialog = (e) => {
+		$('body').classList.remove('dialog');
 		if (!$('dialog')) return;
 		$('dialog').remove();
 		window.removeEventListener('keyup', evt);
@@ -179,6 +191,8 @@ const WebDAVNavigator = (url, user, password) => {
 	};
 
 	const openListing = (uri, push) => {
+		closeDialog();
+
 		reqXML('PROPFIND', uri, propfind_tpl, {'Depth': 1}).then((xml) => {
 			buildListing(uri, xml)
 			current_url = uri;
@@ -190,6 +204,7 @@ const WebDAVNavigator = (url, user, password) => {
 	};
 
 	const reloadListing = () => {
+		stopLoading();
 		openListing(current_url, false);
 	};
 
@@ -223,25 +238,35 @@ const WebDAVNavigator = (url, user, password) => {
 		}
 	};
 
+	const animateLoading = () => {
+		document.body.classList.add('loading');
+	};
+
+	const stopLoading = () => {
+		document.body.classList.remove('loading');
+	};
+
 	const buildListing = (uri, xml) => {
 		uri = normalizeURL(uri);
 
-		var items = [];
+		var items = [[], []];
 		var title = null;
 
 		xml.querySelectorAll('response').forEach((node) => {
 			var item_uri = normalizeURL(node.querySelector('href').textContent);
+			var name = item_uri.replace(/\/$/, '').split('/').pop();
+			name = decodeURIComponent(name);
 
 			if (item_uri == uri) {
-				title = node.querySelector('displayname').textContent;
+				title = name;
 				return;
 			}
 
 			var is_dir = node.querySelector('resourcetype collection') ? true : false;
 
-			items.push({
+			items[is_dir ? 0 : 1].push({
 				'uri': item_uri,
-				'name': node.querySelector('displayname').textContent,
+				'name': name,
 				'size': !is_dir ? parseInt(node.querySelector('getcontentlength').textContent, 10) : null,
 				'mime': !is_dir ? node.querySelector('getcontenttype').textContent : null,
 				'modified': new Date(node.querySelector('getlastmodified').textContent),
@@ -249,6 +274,11 @@ const WebDAVNavigator = (url, user, password) => {
 			});
 		});
 
+		items[0].sort((a, b) => a.name.localeCompare(b.name));
+		items[1].sort((a, b) => a.name.localeCompare(b.name));
+
+		// Sort with directories first
+		items = items[0].concat(items[1]);
 
 		var table = '';
 		var parent = uri.replace(/\/+$/, '').split('/').slice(0, -1).join('/') + '/';
@@ -270,7 +300,7 @@ const WebDAVNavigator = (url, user, password) => {
 		});
 
 		document.title = title;
-		document.body.innerHTML = template(body_tpl, {'title': html(document.title), 'base_url': base_url, 'table': table});
+		document.querySelector('main').innerHTML = template(body_tpl, {'title': html(document.title), 'base_url': base_url, 'table': table});
 
 		Array.from($('table').rows).forEach((tr) => {
 			var $$ = (a) => tr.querySelector(a);
@@ -309,9 +339,10 @@ const WebDAVNavigator = (url, user, password) => {
 				$$('a').onclick = () => {
 					if (file_url.match(/\.md$/)) {
 						openDialog('<div class="md_preview"></div>', false);
-						req('GET', file_url).then((r) => r.text().then((t) => {
+						$('dialog').className = 'preview';
+						req('GET', file_url).then(r => r.text()).then(t => {
 							$('.md_preview').innerHTML = microdown.parse(html(t));
-						}));
+						});
 						return false;
 					}
 
@@ -371,7 +402,7 @@ const WebDAVNavigator = (url, user, password) => {
 			$$('.delete').onclick = (e) => {
 				openDialog(delete_dialog);
 				document.forms[0].onsubmit = () => {
-					return reqAndReload('DELETE', file_url, '');
+					return reqAndReload('DELETE', file_url);
 				};
 			};
 
@@ -387,7 +418,13 @@ const WebDAVNavigator = (url, user, password) => {
 
 					if (!name) return false;
 
-					return reqAndReload('MOVE', file_url, '', {'Destination': location.pathname + name});
+					name = encodeURIComponent(name);
+					name = name.replace(/%2F/, '/');
+
+					var dest = file_url.replace(/\/+[^\/]*$/, '/') + name;
+					dest = normalizeURL(dest);
+
+					return reqAndReload('MOVE', file_url, '', {'Destination': dest});
 				};
 			};
 
@@ -400,6 +437,8 @@ const WebDAVNavigator = (url, user, password) => {
 
 				if (!name) return false;
 
+				name = encodeURIComponent(name);
+
 				req('MKCOL', current_url + name).then(() => openListing(current_url + name + '/'));
 				return false;
 			};
@@ -407,10 +446,16 @@ const WebDAVNavigator = (url, user, password) => {
 
 		$('.mkfile').onclick = () => {
 			openDialog(mkfile_dialog);
+			var t = $('input[name=mkfile]');
+			t.value = '.md';
+			t.focus();
+			t.selectionStart = t.selectionEnd = 0;
 			document.forms[0].onsubmit = () => {
-				var name = $('input[name=mkfile]').value;
+				var name = t.value;
 
 				if (!name) return false;
+
+				name = encodeURIComponent(name);
 
 				return reqAndReload('PUT', current_url + name, '');
 			};
@@ -426,6 +471,8 @@ const WebDAVNavigator = (url, user, password) => {
 			var body = new Blob(fi.files);
 			var name = fi.files[0].name;
 
+			name = encodeURIComponent(name);
+
 			return reqAndReload('PUT', current_url + name, body);
 		};
 	};
@@ -433,6 +480,10 @@ const WebDAVNavigator = (url, user, password) => {
 	var current_url = url;
 	var base_url = url;
 	var auth_header = (user && password) ? 'Basic ' + btoa(user + ':' + password) : null;
+
+	if (!base_url.match(/^https?:/)) {
+		base_url = location.href.replace(/^(https?:\/\/[^\/]+\/).*$/, '$1') + base_url.replace(/^\/+/, '');
+	}
 
 	var evt, paste_upload, popstate_evt, temp_object_url;
 
@@ -461,7 +512,8 @@ const WebDAVNavigator = (url, user, password) => {
 				t.selectionEnd = name.lastIndexOf('.');
 
 				document.forms[0].onsubmit = () => {
-					return reqAndReload('PUT', current_url + t.value, paste_upload);
+					name = encodeURIComponent(t.value);
+					return reqAndReload('PUT', current_url + name, paste_upload);
 				};
 
 				return;
@@ -469,36 +521,57 @@ const WebDAVNavigator = (url, user, password) => {
 		}
 	});
 
-	document.addEventListener('dragover', (e) => {
+	var dragcounter = 0;
+
+	window.addEventListener('dragover', (e) => {
 		e.preventDefault();
-		document.body.style.opacity = '0.5';
-		document.body.style.filter = 'blur(2px)';
+		e.stopPropagation();
 	});
 
-	document.addEventListener('dragleave', (e) => {
+	window.addEventListener('dragenter', (e) => {
 		e.preventDefault();
-		document.body.style.opacity = '';
-		document.body.style.filter = '';
+		e.stopPropagation();
+
+		if (!dragcounter) {
+			document.body.classList.add('dragging');
+		}
+
+		dragcounter++;
 	});
 
-	document.addEventListener('drop', (e) => {
+	window.addEventListener('dragleave', (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		dragcounter--;
+
+		if (!dragcounter) {
+			document.body.classList.remove('dragging');
+		}
+	});
+
+	window.addEventListener('drop', (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		document.body.classList.remove('dragging');
+		dragcounter = 0;
+
 		let items = e.dataTransfer.items;
-		document.body.style.opacity = '';
-		document.body.style.filter = '';
-		e.preventDefault();
 
 		if (!items.length) return;
 
-		const upload = async (f) => {
-			await req('PUT', current_url + f.name, f);
-		};
+		animateLoading();
 
-		([...items]).forEach(item => {
-			if (item.kind != 'file') return;
-			upload(item.getAsFile());
-		});
+		(async () => {
+			for (var i = 0; i < items.length; i++) {
+				var item = items[i];
+				if (item.kind != 'file') return;
+				var f = item.getAsFile();
+				await req('PUT', current_url + encodeURIComponent(f.name), f);
+			}
 
-		window.setTimeout(reloadListing, 500);
+			stopLoading();
+			reloadListing();
+		})();
 	});
 };
 

@@ -57,6 +57,10 @@ table tr:nth-child(even) {
 }
 
 .icon.TXT, .icon.MD {
+	background: #000;
+}
+
+.icon.MP4, .icon.MKV, .icon.MP3, .icon.M4A, .icon.WAV, .icon.FLAC, .icon.OGG, .icon.OGV, .icon.AAC {
 	background: #669;
 }
 
@@ -189,12 +193,14 @@ dialog.preview {
 iframe, .md_preview {
 	overflow: auto;
 	position: absolute;
-	top: 2em;
+	top: 0;
 	left: 0;
-	width: calc(100vw);
-	height: calc(100% - 2em);
+	right: 0;
+	bottom: 0;
 	padding: 0;
 	margin: 0;
+	width: 100%;
+	height: 100%;
 	border: none;
 }
 
@@ -206,11 +212,18 @@ iframe, .md_preview {
 }
 
 .preview form > div {
+	width: calc(100vw);
 	height: 100%;
+	position: relative;
 	margin: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.preview div video {
+	max-width: 100%;
+	max-height: 100%;
 }
 
 .md_preview {
@@ -242,3 +255,57 @@ iframe, .md_preview {
 input[name=rename], input[name=paste_name] {
 	width: 30em;
 }
+
+.bg {
+	align-items: center;
+	justify-content: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	margin: 0;
+	padding: 0;
+	width: 0;
+	height: 0;
+	border: none;
+	display: flex;
+	opacity: 0;
+}
+
+.loading .bg::after {
+	display: block;
+	content: " ";
+	width: 70px;
+	height: 70px;
+	border: 5px solid #ccc;
+	border-radius: 50%;
+	border-top-color: #000;
+	animation: spin 1s ease-in-out infinite;
+	filter: none;
+}
+
+.loading .bg::before {
+	display: block;
+	content: " ";
+	width: 70px;
+	height: 70px;
+	border: 20px solid #fff;
+	border-radius: 50%;
+	background: #fff;
+	position: absolute;
+}
+
+.loading .bg, .dragging .bg, .dialog .bg {
+	backdrop-filter: blur(5px);
+	background: rgba(0, 0, 0, 0.5);
+	opacity: 1;
+	width: 100%;
+	height: 100%;
+}
+
+dialog {
+	transition: all .3s;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
