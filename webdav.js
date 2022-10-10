@@ -64,10 +64,18 @@ const WebDAVNavigator = (url, user, password) => {
 		animateLoading();
 		req(method, url, body, headers).then(r => {
 			stopLoading();
-			if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+			if (!r.ok) {
+				return r.text().then(t => {
+					var message;
+					if (a = t.match(/<((?:\w+:)?message)>(.*)<\/\1>/)) {
+						message = "\n" + a[2];
+					}
+
+					throw new Error(r.status + ' ' + r.statusText + message); });
+			}
 			reloadListing();
 		}).catch(e => {
-			console.log(e);
+			console.error(e);
 			alert(e);
 		});
 		return false;
@@ -423,8 +431,6 @@ const WebDAVNavigator = (url, user, password) => {
 
 					var dest = current_url + name;
 					dest = normalizeURL(dest);
-
-					console.log(file_url, dest);
 
 					return reqAndReload('MOVE', file_url, '', {'Destination': dest});
 				};

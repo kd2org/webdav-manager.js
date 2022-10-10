@@ -35,8 +35,8 @@ table tr:nth-child(even) {
 }
 
 .icon {
-	width: 48px;
-	height: 48px;
+	width: 2.6em;
+	height: 2.6em;
 	display: block;
 	border-radius: .2em;
 	background: #999;
@@ -49,7 +49,7 @@ table tr:nth-child(even) {
 	font-weight: normal;
 	display: inline-block;
 	transform: rotate(-30deg);
-	line-height: 48px;
+	line-height: 2.6rem;
 }
 
 .icon.JPEG, .icon.PNG, .icon.JPG, .icon.GIF, .icon.SVG, .icon.WEBP {
@@ -74,7 +74,7 @@ table tr:nth-child(even) {
 }
 
 .icon.dir b {
-	font-size: 40px;
+	font-size: 2em;
 	transform: none;
 }
 
@@ -309,3 +309,90 @@ dialog {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@media screen and (max-width: 800px) {
+	.upload {
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
+	body {
+		margin: 0;
+		font-size: 1em;
+	}
+
+	table {
+		margin: 2em 0;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	table tr {
+		display: block;
+		border-top: 5px solid #fff;
+		padding: 0;
+		padding-left: 2em;
+		position: relative;
+		text-align: left;
+		min-height: 2.5em;
+	}
+
+	table td, table th {
+		border: none;
+		display: inline-block;
+		padding: .2em .5em;
+	}
+
+	table td.buttons {
+		display: block;
+		width: auto;
+		text-align: left;
+	}
+
+	 td.buttons div {
+	 	display: inline-block;
+	 }
+
+	table td.thumb {
+		padding: 0;
+		width: 2em;
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+	}
+
+	table th {
+		display: block;
+	}
+
+	.icon {
+		font-size: 12px;
+		height: 100%;
+		border-radius: 0;
+	}
+
+	.icon:not(.dir) b {
+		line-height: 3em;
+		display: block;
+		transform: translateX(-50%) translateY(-50%) rotate(-90deg);
+		font-size: 2em;
+		height: 3em;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+	}
+
+	table th a {
+		font-size: 1.2em;
+	}
+
+	input[name=rename], input[name=paste_name] {
+		width: auto;
+	}
+
+
+}
