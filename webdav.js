@@ -7,20 +7,22 @@ const WebDAVNavigator = (url, user, password) => {
 
 	const PREVIEW_TYPES = /^image\/(png|webp|svg|jpeg|jpg|gif|png)|^application\/pdf|^text\/|^audio\/|^video\//;
 
-	const common_buttons = `<input class="rename" type="button" value="Rename" />
-		<input class="delete" type="button" value="Delete" />`;
+	const _ = key => typeof lang_strings != 'undefined' && key in lang_strings ? lang_strings[key] : key;
 
-	const edit_button = `<input class="edit" type="button" value="Edit" />`;
+	const common_buttons = `<input class="rename" type="button" value="${_('Rename')}" />
+		<input class="delete" type="button" value="${_('Delete')}" />`;
 
-	const mkdir_dialog = `<input type="text" name="mkdir" placeholder="Directory name" />`;
-	const mkfile_dialog = `<input type="text" name="mkfile" placeholder="File name" />`;
-	const rename_dialog = `<input type="text" name="rename" placeholder="New file name" />`;
-	const paste_upload_dialog = `<h3>Upload this file?</h3><input type="text" name="paste_name" placeholder="New file name" />`;
+	const edit_button = `<input class="edit" type="button" value="${_('Edit')}" />`;
+
+	const mkdir_dialog = `<input type="text" name="mkdir" placeholder="${_('Directory name')}" />`;
+	const mkfile_dialog = `<input type="text" name="mkfile" placeholder="${_('File name')}" />`;
+	const rename_dialog = `<input type="text" name="rename" placeholder="${_('New file name')}" />`;
+	const paste_upload_dialog = `<h3>Upload this file?</h3><input type="text" name="paste_name" placeholder="${_('New file name')}" />`;
 	const edit_dialog = `<textarea name="edit" cols="70" rows="30"></textarea>`;
 	const markdown_dialog = `<div id="mdp"><textarea name="edit" cols="70" rows="30"></textarea><div id="md"></div></div>`;
-	const delete_dialog = `<h3>Confirm delete ?</h3>`;
+	const delete_dialog = `<h3>${_('Confirm delete?')}</h3>`;
 
-	const dialog_tpl = `<dialog open><p class="close"><input type="button" value="&#x2716; Close" class="close" /></p><form><div>%s</div>%b</form></dialog>`;
+	const dialog_tpl = `<dialog open><p class="close"><input type="button" value="&#x2716; ${_('Close')}" class="close" /></p><form><div>%s</div>%b</form></dialog>`;
 
 	const html_tpl = `<!DOCTYPE html><html>
 		<head><title>Files</title><link rel="stylesheet" type="text/css" href="${css_url}" /></head>
@@ -28,15 +30,15 @@ const WebDAVNavigator = (url, user, password) => {
 
 	const body_tpl = `<h1>%title%</h1>
 		<div class="upload">
-			<input class="mkdir" type="button" value="New directory" />
+			<input class="mkdir" type="button" value="${_('New directory')}" />
 			<input type="file" style="display: none;" />
-			<input class="mkfile" type="button" value="New text file" />
-			<input class="uploadfile" type="button" value="Upload file" />
+			<input class="mkfile" type="button" value="${_('New text file')}" />
+			<input class="uploadfile" type="button" value="${_('Upload file')}" />
 		</div>
 		<table>%table%</table>`;
 
 	const dir_row_tpl = `<tr><td class="thumb"><span class="icon dir"><b>%icon%</b></span></td><th colspan="3"><a href="%uri%">%name%</a></th><td class="buttons"><div></div></td></tr>`;
-	const file_row_tpl = `<tr data-mime="%mime%"><td class="thumb"><span class="icon %icon%"><b>%icon%</b></span></td><th><a href="%uri%">%name%</a></th><td class="size">%size%</td><td>%modified%</td><td class="buttons"><div><a href="%uri%" download class="btn">Download</a></div></td></tr>`;
+	const file_row_tpl = `<tr data-mime="%mime%"><td class="thumb"><span class="icon %icon%"><b>%icon%</b></span></td><th><a href="%uri%">%name%</a></th><td class="size">%size%</td><td>%modified%</td><td class="buttons"><div><a href="%uri%" download class="btn">${_('Download')}</a></div></td></tr>`;
 
 	const propfind_tpl = `<?xml version="1.0" encoding="UTF-8"?>
 		<D:propfind xmlns:D="DAV:">
@@ -101,7 +103,7 @@ const WebDAVNavigator = (url, user, password) => {
 	};
 
 	const openDialog = (html, ok_btn = true) => {
-		var tpl = dialog_tpl.replace(/%b/, ok_btn ? '<p><input type="submit" value="OK" /></p>' : '');
+		var tpl = dialog_tpl.replace(/%b/, ok_btn ? `<p><input type="submit" value="${_('OK')}" /></p>` : '');
 		$('body').classList.add('dialog');
 		$('body').insertAdjacentHTML('beforeend', tpl.replace(/%s/, html));
 		$('.close input').onclick = closeDialog;
@@ -152,10 +154,8 @@ const WebDAVNavigator = (url, user, password) => {
 
 	const $ = (a) => document.querySelector(a);
 
-	const formatBytes = (bytes, unit) => {
-		if (!unit) {
-			unit = 'B';
-		}
+	const formatBytes = (bytes) => {
+		const unit = _('B');
 
 		if (bytes >= 1024*1024*1024) {
 			return Math.round(bytes / (1024*1024*1024)) + ' G' + unit;
@@ -177,14 +177,14 @@ const WebDAVNavigator = (url, user, password) => {
 
 		if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == now.getDate()) {
 			if (nb_hours <= 1) {
-				return '%d minutes ago'.replace(/%d/, Math.round(nb_hours * 60));
+				return _('%d minutes ago').replace(/%d/, Math.round(nb_hours * 60));
 			}
 			else {
-				return '%d hours ago'.replace(/%d/, Math.round(nb_hours));
+				return _('%d hours ago').replace(/%d/, Math.round(nb_hours));
 			}
 		}
 		else if (nb_hours <= 24) {
-			return 'Yesterday, %s'.replace(/%s/, date.toLocaleTimeString());
+			return _('Yesterday, %s').replace(/%s/, date.toLocaleTimeString());
 		}
 
 		return date.toLocaleString();
@@ -284,7 +284,7 @@ const WebDAVNavigator = (url, user, password) => {
 		var parent = uri.replace(/\/+$/, '').split('/').slice(0, -1).join('/') + '/';
 
 		if (parent.length >= base_url.length) {
-			table += template(dir_row_tpl, {'name': 'Back', 'uri': parent, 'icon': '&#x21B2;'});
+			table += template(dir_row_tpl, {'name': _('Back'), 'uri': parent, 'icon': '&#x21B2;'});
 		}
 		else {
 			title = 'My files';
@@ -327,7 +327,7 @@ const WebDAVNavigator = (url, user, password) => {
 			// This is to get around CORS when not on the same domain
 			if (user && password && (a = tr.querySelector('a[download]'))) {
 				a.onclick = () => {
-					download(url);
+					download(file_name, url);
 					return false;
 				};
 			}
@@ -421,8 +421,10 @@ const WebDAVNavigator = (url, user, password) => {
 					name = encodeURIComponent(name);
 					name = name.replace(/%2F/, '/');
 
-					var dest = file_url.replace(/\/+[^\/]*$/, '/') + name;
+					var dest = current_url + name;
 					dest = normalizeURL(dest);
+
+					console.log(file_url, dest);
 
 					return reqAndReload('MOVE', file_url, '', {'Destination': dest});
 				};
