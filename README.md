@@ -105,3 +105,8 @@ Contact us :)
 ## Authors
 
 * BohwaZ <https://bohwaz.net/> 2022
+
+## Other solutions
+
+* [webdav-js](https://github.com/dom111/webdav-js)
+* [WebDavFileTree](https://github.com/Kysic/webdavFileTree)
