@@ -92,7 +92,7 @@ Just copy the `webdav.js`, `webdav.css` and `demo.html` pages to a directory on 
 
 ### CORS
 
-For the client to work in this mode, your WebDAV server MUST set the following HTTP headers:
+For the client to work in this mode, your WebDAV server MUST set the following HTTP headers for `OPTIONS` requests:
 
 ```
 Access-Control-Allow-Origin: *
@@ -102,6 +102,26 @@ Access-Control-Allow-Methods: GET,HEAD,PUT,DELETE,COPY,MOVE,PROPFIND,MKCOL,LOCK,
 ```
 
 If your server doesn't set these headers, you won't be able to use this client, this is a security limitation of web browsers.
+
+### NextCloud
+
+As an example, here is the Apache configuration that will allow your local client to make requests to a NextCloud server:
+
+```
+<Location /remote.php>
+	<Limit OPTIONS>
+		Header always set Access-Control-Allow-Origin "*"
+		Header always set Access-Control-Allow-Credentials "true"
+		Header always set Access-Control-Allow-Headers "Authorization, *"
+		Header always set Access-Control-Allow-Methods "GET,HEAD,PUT,DELETE,COPY,MOVE,PROPFIND,MKCOL,LOCK,UNLOCK"
+		Header always set Allow "GET,HEAD,PUT,DELETE,COPY,MOVE,PROPFIND,MKCOL,LOCK,UNLOCK"
+	</Limit>
+
+	RewriteEngine On
+	RewriteCond %{REQUEST_METHOD} OPTIONS
+	RewriteRule ^(.*)$ $1 [R=200,L]
+</Location>
+```
 
 ## License
 
