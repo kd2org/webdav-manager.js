@@ -275,9 +275,9 @@ const WebDAVNavigator = (url, user, password) => {
 			items[is_dir ? 0 : 1].push({
 				'uri': item_uri,
 				'name': name,
-				'size': !is_dir ? parseInt(node.querySelector('getcontentlength').textContent, 10) : null,
-				'mime': !is_dir ? node.querySelector('getcontenttype').textContent : null,
-				'modified': new Date(node.querySelector('getlastmodified').textContent),
+				'size': !is_dir && (prop = node.querySelector('getcontentlength')) ? parseInt(prop.textContent, 10) : null,
+				'mime': !is_dir && (prop = node.querySelector('getcontenttype')) ? prop.textContent : null,
+				'modified': (prop = node.querySelector('getlastmodified')) ? new Date(prop.textContent) : null,
 				'is_dir': is_dir,
 			});
 		});

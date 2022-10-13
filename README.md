@@ -23,8 +23,10 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 
 ### Planned features
 
-* [Resumable upload via TUS](https://tus.io/protocols/resumable-upload.html) to upload large files
+* Order files by date or size
+* Select multiple items to move/delete
 * Upload progress status for large files
+* [Resumable upload via TUS](https://tus.io/protocols/resumable-upload.html) to upload large files
 
 ## Compatibility
 
@@ -143,3 +145,4 @@ Contact us :)
 
 * [webdav-js](https://github.com/dom111/webdav-js)
 * [WebDavFileTree](https://github.com/Kysic/webdavFileTree)
+* [WebDAV Drive](https://github.com/club-1/webdav-drive)
