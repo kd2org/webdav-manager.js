@@ -89,6 +89,10 @@ table tr:nth-child(even) {
 	background: #669;
 }
 
+.icon.document {
+	background: #696;
+}
+
 .icon.PDF {
 	background: #969;
 }

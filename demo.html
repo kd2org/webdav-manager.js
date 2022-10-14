@@ -41,7 +41,7 @@
 		s.setItem('url', _url);
 		s.setItem('user', _user);
 		try {
-			WebDAVNavigator(_url, _user, password.value.trim());
+			WebDAVNavigator(_url, {'user': _user, 'password': password.value.trim()});
 		}
 		catch (e) {
 			console.error(e);
