@@ -15,6 +15,7 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 * Upload files with drag and drop
 * Preview of images, text, videos, audio, MarkDown and PDF
 * [MarkDown live preview when editing MarkDown files](https://kd2org.github.io/webdav-manager.js/scr_1.jpg)
+* Support for viewing/editing document files via WOPI clients (OnlyOffice, Collabora Online, MS Office)
 * Download files
 * Localization support
 * Responsive: works with mobiles and desktop browsers
@@ -44,6 +45,31 @@ You can try the demo live at [https://kd2org.github.io/webdav-manager.js/demo.ht
 You can review the source code in this repo: the password is never stored, and only sent to the WebDAV server as part of basic auth.
 
 This demo will only work with a WebDAV server that allows cross-origin requests (see section on CORS below).
+
+## Usage
+
+If your HTML page has a `data-webdav-url` attribute, the file manager will open up automatically using this URL when loading the javascript:
+
+```
+<html data-webdav-url="http://localhost:8080/dav/files/user/">
+<body>
+<script type="text/javascript" src="webdav.js"></script>
+</body>
+</html>
+```
+
+If you want to specify extra options, you can also just call the `WebDAVNavigator` function, the fist parameter being the WebDAV URL and the second being an object defining options.
+
+```
+WebDAVNavigator('http://localhost:8080/dav/', {'user': 'demo', 'password': 'abcd'});
+```
+
+### Options
+
+* `user`: HTTP basic auth user name
+* `password`: HTTP basic auth user password (not required if the HTML page is already in a password-protected directory)
+* `wopi_host_url`: URL of the WOPI host to edit Office documents
+* `wopi_discovery_url`: URL of the WOPI discovery XML, used to edit Office documents
 
 ## Install as the client for your WebDAV server
 
