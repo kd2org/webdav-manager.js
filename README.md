@@ -18,6 +18,7 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 * Download files
 * Localization support
 * Responsive: works with mobiles and desktop browsers
+* Support for light and dark theme
 * Only 8KB gzipped!
 * Single file, self-contained, no dependencies, no silly NPM stuff!
 

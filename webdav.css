@@ -1,7 +1,32 @@
+:root {
+	--bg-color: #fff;
+	--fg-color: #000;
+	--g1-color: #eee;
+	--g2-color: #ccc;
+	--g3-color: #999;
+	--link-color: blue;
+	--visited-color: purple;
+	--active-color: darkred;
+}
+
 body {
 	text-align: center;
 	font-size: 1.1em;
 	font-family: Arial, Helvetica, sans-serif;
+	background: var(--bg-color);
+	color: var(--fg-color);
+}
+
+a:link {
+	color: var(--link-color);
+}
+
+a:visited {
+	color: var(--visited-color);
+}
+
+a:hover {
+	color: var(--active-color);
 }
 
 table {
@@ -13,7 +38,7 @@ table {
 th, td {
 	padding: .5em;
 	text-align: left;
-	border: 2px solid #ccc;
+	border: 2px solid var(--g2-color);
 }
 
 td.thumb {
@@ -31,7 +56,7 @@ td.buttons div {
 }
 
 table tr:nth-child(even) {
-	background: #eee;
+	background: var(--g1-color);
 }
 
 .icon {
@@ -39,9 +64,9 @@ table tr:nth-child(even) {
 	height: 2.6em;
 	display: block;
 	border-radius: .2em;
-	background: #999;
+	background:var(--g3-color);
 	overflow: hidden;
-	color: #fff;
+	color: var(--bg-color);
 	text-align: center;
 }
 
@@ -57,7 +82,7 @@ table tr:nth-child(even) {
 }
 
 .icon.TXT, .icon.MD {
-	background: #000;
+	background: var(--fg-color);
 }
 
 .icon.MP4, .icon.MKV, .icon.MP3, .icon.M4A, .icon.WAV, .icon.FLAC, .icon.OGG, .icon.OGV, .icon.AAC {
@@ -69,8 +94,8 @@ table tr:nth-child(even) {
 }
 
 .icon.dir {
-	background: #ccc;
-	color: #000;
+	background: var(--g2-color);
+	color: var(--fg-color);
 }
 
 .icon.dir b {
@@ -87,11 +112,11 @@ input[type=button], input[type=submit], .btn {
 	padding: .3em .5em;
 	margin: .2em .3em;
 	border: none;
-	background: #ccc;
+	background: var(--g2-color);
 	border-radius: .2em;
 	cursor: pointer;
 	text-decoration: none;
-	color: #000;
+	color: var(--fg-color) !important;
 	font-family: inherit;
 }
 
@@ -103,21 +128,22 @@ input[type=text], textarea {
 	font-size: 1.2em;
 	padding: .3em .5em;
 	border: none;
-	background: #fff;
+	background: var(--bg-color);
 	border-radius: .2em;
 	width: calc(100% - 1em);
+	color: var(--fg-color);
 }
 
 input:focus, textarea:focus {
-	box-shadow: 0px 0px 5px blue;
-	outline: 1px solid #999;
+	box-shadow: 0px 0px 5px var(--active-color);
+	outline: 1px solid var(--active-color);
 }
 
 input[type=button]:hover, input[type=submit]:hover, .btn:hover {
-	color: darkred;
+	color: var(--active-color);
 	text-decoration: underline;
-	background: #fff;
-	box-shadow: 0px 0px 5px #000;
+	background: var(--bg-color);
+	box-shadow: 0px 0px 5px var(--fg-color);
 }
 
 .close {
@@ -139,8 +165,9 @@ dialog {
 	right: 1em;
 	bottom: 1em;
 	left: 1em;
-	box-shadow: 0px 0px 5px #000;
-	background: #eee;
+	box-shadow: 0px 0px 5px var(--fg-color);
+	background: var(--g1-color);
+	color: var(--fg-color);
 	border: none;
 	border-radius: .5em;
 }
@@ -173,7 +200,7 @@ dialog form div {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	grid-gap: .2em;
-	background: #ddd;
+	background: var(--g1-color);
 	height: 82vh;
 }
 
@@ -186,7 +213,7 @@ dialog.preview {
 	bottom: 0;
 	padding: 0;
 	border-radius: 0;
-	background: #ddd;
+	background: var(--g1-color);
 	overflow: hidden;
 }
 
@@ -202,6 +229,11 @@ iframe, .md_preview {
 	width: 100%;
 	height: 100%;
 	border: none;
+}
+
+iframe, iframe body, .md_preview {
+	background-color: #fff;
+	color: #000;
 }
 
 .preview form {
@@ -242,9 +274,9 @@ iframe, .md_preview {
 	margin: 0;
 	padding: 0;
 	border-radius: 0;
-	background: #fff;
-	color: #000;
-	box-shadow: 0px 0px 5px #000;
+	background: var(--g2-color);
+	color: var(--fg-color);
+	box-shadow: 0px 0px 5px var(--g2-color);
 }
 
 .preview img {
@@ -278,9 +310,9 @@ input[name=rename], input[name=paste_name] {
 	content: " ";
 	width: 70px;
 	height: 70px;
-	border: 5px solid #ccc;
+	border: 5px solid var(--g2-color);
 	border-radius: 50%;
-	border-top-color: #000;
+	border-top-color: var(--fg-color);
 	animation: spin 1s ease-in-out infinite;
 	filter: none;
 }
@@ -290,9 +322,9 @@ input[name=rename], input[name=paste_name] {
 	content: " ";
 	width: 70px;
 	height: 70px;
-	border: 20px solid #fff;
+	border: 20px solid var(--bg-color);
 	border-radius: 50%;
-	background: #fff;
+	background: var(--bg-color);
 	position: absolute;
 }
 
@@ -332,7 +364,7 @@ dialog {
 
 	table tr {
 		display: block;
-		border-top: 5px solid #fff;
+		border-top: 5px solid var(--bg-color);
 		padding: 0;
 		padding-left: 2em;
 		position: relative;
@@ -393,6 +425,17 @@ dialog {
 	input[name=rename], input[name=paste_name] {
 		width: auto;
 	}
+}
 
-
+@media (prefers-color-scheme: dark) {
+    :root {
+	 	--bg-color: #000;
+		--fg-color: #fff;
+		--g1-color: #222;
+		--g2-color: #555;
+		--g3-color: #777;
+		--link-color: #99f;
+		--visited-color: #ccf;
+		--active-color: orange;
+	}
 }
