@@ -436,7 +436,9 @@ const WebDAVNavigator = (url, options) => {
 
 			var view_url, edit_url;
 
-			if (mime.match(PREVIEW_TYPES)) {
+			// Don't preview PDF in mobile
+			if (mime.match(PREVIEW_TYPES)
+				&& !(mime == 'application/pdf' && window.navigator.userAgent.match(/Mobi|Tablet|Android|iPad|iPhone/))) {
 				$$('a').onclick = () => {
 					if (file_url.match(/\.md$/)) {
 						openDialog('<div class="md_preview"></div>', false);
@@ -448,10 +450,10 @@ const WebDAVNavigator = (url, options) => {
 					}
 
 					if (user && password) {
-						(async () => { preview(type, await get_url(file_url)); })();
+						(async () => { preview(mime, await get_url(file_url)); })();
 					}
 					else {
-						preview(type, file_url);
+						preview(mime, file_url);
 					}
 
 					return false;
@@ -463,6 +465,9 @@ const WebDAVNavigator = (url, options) => {
 			}
 			else if (user && password && !dir) {
 				$$('a').onclick = () => { download(file_name, file_url); return false; };
+			}
+			else {
+				$$('a').download = file_name;
 			}
 
 			if (mime.match(/^text\/|application\/x-empty/)) {
