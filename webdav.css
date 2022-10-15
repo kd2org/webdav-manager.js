@@ -85,7 +85,7 @@ table tr:nth-child(even) {
 	background: var(--fg-color);
 }
 
-.icon.MP4, .icon.MKV, .icon.MP3, .icon.M4A, .icon.WAV, .icon.FLAC, .icon.OGG, .icon.OGV, .icon.AAC {
+.icon.MP4, .icon.MKV, .icon.MP3, .icon.M4A, .icon.WAV, .icon.FLAC, .icon.OGG, .icon.OGV, .icon.AAC, .icon.WEBM {
 	background: #669;
 }
 
