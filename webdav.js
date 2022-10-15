@@ -167,7 +167,7 @@ const WebDAVNavigator = (url, options) => {
 			return wopi_extensions[file_ext].view;
 		}
 
-		return null;
+		return wopi_getEditURL(name, mime);
 	};
 
 	const wopi_open = async (document_url, wopi_url) => {
@@ -180,7 +180,7 @@ const WebDAVNavigator = (url, options) => {
 			alert('Cannot open document: WebDAV server did not return WOPI properties');
 		}
 
-		wopi_url += '&wopisrc=' + encodeURIComponent(src);
+		wopi_url += '&WOPISrc=' + encodeURIComponent(src);
 
 		console.log(src + '?access_token=' + token);
 
