@@ -37,6 +37,11 @@ const WebDAVNavigator = (url, options) => {
 			<input type="file" style="display: none;" />
 			<input class="mkfile" type="button" value="${_('New text file')}" />
 			<input class="uploadfile" type="button" value="${_('Upload file')}" />
+			<select class="sortorder btn">
+				<option value="name">${_('Sort by name')}</option>
+				<option value="date">${_('Sort by date')}</option>
+				<option value="size">${_('Sort by size')}</option>
+			</select>
 		</div>
 		<table>%table%</table>`;
 
@@ -181,8 +186,6 @@ const WebDAVNavigator = (url, options) => {
 		}
 
 		wopi_url += '&WOPISrc=' + encodeURIComponent(src);
-
-		console.log(src + '?access_token=' + token);
 
 		openDialog(wopi_dialog, false);
 		$('dialog').className = 'preview';
@@ -374,7 +377,17 @@ const WebDAVNavigator = (url, options) => {
 		});
 
 		items[0].sort((a, b) => a.name.localeCompare(b.name));
-		items[1].sort((a, b) => a.name.localeCompare(b.name));
+		items[1].sort((a, b) => {
+			if (sort_order == 'date') {
+				return b.modified - a.modified;
+			}
+			else if (sort_order == 'size') {
+				return b.size - a.size;
+			}
+			else {
+				return a.name.localeCompare(b.name);
+			}
+		});
 
 		// Sort with directories first
 		items = items[0].concat(items[1]);
@@ -577,6 +590,14 @@ const WebDAVNavigator = (url, options) => {
 			};
 		};
 
+		var select = $('.sortorder');
+		select.value = sort_order;
+		select.onchange = () => {
+			sort_order = select.value;
+			window.localStorage.setItem('sort_order', sort_order);
+			reloadListing();
+		};
+
 		var fi = $('input[type=file]');
 
 		$('.uploadfile').onclick = () => fi.click();
@@ -599,11 +620,16 @@ const WebDAVNavigator = (url, options) => {
 	const password = options.password || null;
 	var auth_header = (user && password) ? 'Basic ' + btoa(user + ':' + password) : null;
 
+	if (location.pathname.indexOf(base_url) === 0) {
+		current_url = location.pathname;
+	}
+
 	if (!base_url.match(/^https?:/)) {
 		base_url = location.href.replace(/^(https?:\/\/[^\/]+\/).*$/, '$1') + base_url.replace(/^\/+/, '');
 	}
 
 	var evt, paste_upload, popstate_evt, temp_object_url;
+	var sort_order = window.localStorage.getItem('sort_order') || 'name';
 	var wopi_mimes = {}, wopi_extensions = {};
 
 	const wopi_discovery_url = options.wopi_discovery_url || null;

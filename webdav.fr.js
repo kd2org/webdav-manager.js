@@ -18,5 +18,8 @@
 	'%d hours ago': 'il y a %d heures',
 	'Yesterday, %s': 'Hier à %d',
 	'OK': 'OK',
-	'Back': 'Retour'
+	'Back': 'Retour',
+	'Sort by name': 'Trier par nom',
+	'Sort by date': 'Trier par date',
+	'Sort by size': 'Trier par taille'
 };
