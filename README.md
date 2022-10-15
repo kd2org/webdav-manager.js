@@ -2,7 +2,8 @@
 
 This is drop-in JS client that you can use to enhance the web interface of a WebDAV file server. Or you can use it on your computer to access any WebDAV server without installing anything.
 
-![](https://kd2org.github.io/webdav-manager.js/scr_2.jpg)
+![](scr_desktop.png)
+![](scr_mobile.png)
 
 ## Features
 
@@ -14,7 +15,7 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 * Upload files using copy and paste!
 * Upload files with drag and drop
 * Preview of images, text, videos, audio, MarkDown and PDF
-* [MarkDown live preview when editing MarkDown files](https://kd2org.github.io/webdav-manager.js/scr_1.jpg)
+* [MarkDown live preview when editing MarkDown files](scr_markdown.png)
 * Support for viewing/editing document files via WOPI clients (OnlyOffice, Collabora Online, MS Office)
 * Download files
 * Localization support
@@ -25,7 +26,6 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 
 ### Planned features
 
-* Order files by date or size
 * Select multiple items to move/delete
 * Upload progress status for large files
 * [Resumable upload via TUS](https://tus.io/protocols/resumable-upload.html) to upload large files
