@@ -16,7 +16,7 @@
 	'B': 'o', // Bytes unit
 	'%d minutes ago': 'il y a %d minutes',
 	'%d hours ago': 'il y a %d heures',
-	'Yesterday, %s': 'Hier à %d',
+	'Yesterday, %s': 'Hier à %s',
 	'OK': 'OK',
 	'Back': 'Retour',
 	'Sort by name': 'Trier par nom',
