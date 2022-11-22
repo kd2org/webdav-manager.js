@@ -7,6 +7,7 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 
 ## Features
 
+* Order files by name, date, or size
 * Create new directories
 * Create and edit text file
 * Delete files and directories
@@ -17,7 +18,8 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 * Preview of images, text, videos, audio, MarkDown and PDF
 * [MarkDown live preview when editing MarkDown files](scr_markdown.png)
 * Support for viewing/editing document files via WOPI clients (OnlyOffice, Collabora Online, MS Office)
-* Download files
+* Download files individually
+* Download all the files of a directory at once
 * Localization support
 * Responsive: works with mobiles and desktop browsers
 * Support for light and dark theme
