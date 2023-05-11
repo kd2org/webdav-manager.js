@@ -21,5 +21,6 @@
 	'Back': 'Retour',
 	'Sort by name': 'Trier par nom',
 	'Sort by date': 'Trier par date',
-	'Sort by size': 'Trier par taille'
+	'Sort by size': 'Trier par taille',
+	'Download all files': 'Tout télécharger'
 };
