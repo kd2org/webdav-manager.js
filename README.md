@@ -5,6 +5,9 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 ![](scr_desktop.png)
 ![](scr_mobile.png)
 
+* Fossil development repo: <https://fossil.kd2.org/webdav-manager/>
+* Git mirror: <https://github.com/kd2org/webdav-manager.js>
+
 ## Features
 
 * Order files by name, date, or size
