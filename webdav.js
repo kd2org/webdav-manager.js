@@ -47,8 +47,24 @@ const WebDAVNavigator = (url, options) => {
 			<input class="mkfile" type="button" value="${_('New text file')}" />
 			<input class="uploadfile" type="button" value="${_('Upload file')}" />`;
 
-	const dir_row_tpl = `<tr data-permissions="%permissions%"><td class="thumb"><span class="icon dir"><b>%icon%</b></span></td><th colspan="2"><a href="%uri%">%name%</a></th><td>%modified%</td><td class="buttons"><div></div></td></tr>`;
-	const file_row_tpl = `<tr data-permissions="%permissions%" data-mime="%mime%" data-size="%size%"><td class="thumb"><span class="icon %icon%"><b>%icon%</b></span></td><th><a href="%uri%">%name%</a></th><td class="size">%size_bytes%</td><td>%modified%</td><td class="buttons"><div><a href="%uri%" download class="btn">${_('Download')}</a></div></td></tr>`;
+	const dir_row_tpl = `<tr data-permissions="%permissions%">
+		<td class="thumb"><span class="icon dir"><b>%icon%</b></span></td>
+		<th colspan="2"><a href="%uri%">%name%</a></th>
+		<td>%modified%</td>
+		<td class="buttons"><div></div></td>
+	</tr>`;
+
+	const file_row_tpl = `<tr data-permissions="%permissions%" data-mime="%mime%" data-size="%size%">
+		<td class="thumb">%thumb%</td>
+		<th><a href="%uri%">%name%</a></th>
+		<td class="size">%size_bytes%</td>
+		<td>%modified%</td>
+		<td class="buttons"><div><a href="%uri%" download class="btn">${_('Download')}</a></div></td>
+	</tr>`;
+
+	const icon_tpl = `<span class="icon %icon%"><b>%icon%</b></span>`;
+	const root_url = url.replace(/(?<!\/)\/.*$/, '/');
+	const image_thumb_tpl = `<img src="${root_url}index.php/apps/files/api/v1/thumbnail/150/150/%path%" alt="" />`;
 
 	const propfind_tpl = '<'+ `?xml version="1.0" encoding="UTF-8"?>
 		<D:propfind xmlns:D="DAV:" xmlns:oc="http://owncloud.org/ns">
@@ -60,7 +76,7 @@ const WebDAVNavigator = (url, options) => {
 	const wopi_propfind_tpl = '<' + `?xml version="1.0" encoding="UTF-8"?>
 		<D:propfind xmlns:D="DAV:" xmlns:W="https://interoperability.blob.core.windows.net/files/MS-WOPI/">
 			<D:prop>
-				<W:file-url/><W:token/><W:token-ttl/>
+				<W:wopi-url/><W:token/><W:token-ttl/>
 			</D:prop>
 		</D:propfind>`;
 
@@ -218,7 +234,7 @@ const WebDAVNavigator = (url, options) => {
 
 	const wopi_open = async (document_url, wopi_url) => {
 		var properties = await reqXML('PROPFIND', document_url, wopi_propfind_tpl, {'Depth': '0'});
-		var src = (a = properties.querySelector('file-url')) ? a.textContent : null;
+		var src = (a = properties.querySelector('wopi-url')) ? a.textContent : null;
 		var token = (a = properties.querySelector('token')) ? a.textContent : null;
 		var token_ttl = (a = properties.querySelector('token-ttl')) ? a.textContent : +(new Date(Date.now() + 3600 * 1000));
 
@@ -439,7 +455,8 @@ const WebDAVNavigator = (url, options) => {
 		var root_permissions = null;
 
 		xml.querySelectorAll('response').forEach((node) => {
-			var item_uri = normalizeURL(node.querySelector('href').textContent);
+			var path = node.querySelector('href').textContent;
+			var item_uri = normalizeURL(path);
 			var props = null;
 
 			node.querySelectorAll('propstat').forEach((propstat) => {
@@ -470,6 +487,7 @@ const WebDAVNavigator = (url, options) => {
 
 			items[index].push({
 				'uri': item_uri,
+				'path': item_uri.substring(base_url.length),
 				'name': name,
 				'size': !is_dir && (prop = node.querySelector('getcontentlength')) ? parseInt(prop.textContent, 10) : null,
 				'mime': !is_dir && (prop = node.querySelector('getcontenttype')) ? prop.textContent : null,
@@ -526,6 +544,14 @@ const WebDAVNavigator = (url, options) => {
 			item.icon = item.is_dir ? '&#x1F4C1;' : (item.uri.indexOf('.') > 0 ? item.uri.replace(/^.*\.(\w+)$/, '$1').toUpperCase() : '');
 			item.modified = item.modified !== null ? formatDate(item.modified) : null;
 			item.name = html(item.name);
+
+			if (item.mime && item.mime.match(/^image\//) && options.nc_thumbnails) {
+				item.thumb = template(image_thumb_tpl, item);
+			}
+			else {
+				item.thumb = template(icon_tpl, item);
+			}
+
 			table += template(row, item);
 		});
 
@@ -876,5 +902,6 @@ const WebDAVNavigator = (url, options) => {
 if (url = document.querySelector('html').getAttribute('data-webdav-url')) {
 	WebDAVNavigator(url, {
 		'wopi_discovery_url': document.querySelector('html').getAttribute('data-wopi-discovery-url'),
+		'nc_thumbnails': document.querySelector('html').getAttribute('data-nc-thumbnails') ? true : false
 	});
 }
