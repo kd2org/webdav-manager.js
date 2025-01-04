@@ -43,9 +43,9 @@ const WebDAVNavigator = (url, options) => {
 		<table>%table%</table>`;
 
 	const create_buttons = `<input class="mkdir" type="button" value="${_('New directory')}" />
-			<input type="file" style="display: none;" />
+			<input type="file" style="display: none;" multiple />
 			<input class="mkfile" type="button" value="${_('New text file')}" />
-			<input class="uploadfile" type="button" value="${_('Upload file')}" />`;
+			<input class="uploadfile" type="button" value="${_('Upload files')}" />`;
 
 	const dir_row_tpl = `<tr data-permissions="%permissions%">
 		<td class="thumb"><span class="icon dir"><b>%icon%</b></span></td>
@@ -93,21 +93,23 @@ const WebDAVNavigator = (url, options) => {
 			}).then(str => new window.DOMParser().parseFromString(str, "text/xml"));
 	};
 
+	const reqHandler = (r) => {
+		stopLoading();
+		if (!r.ok) {
+			return r.text().then(t => {
+				var message;
+				if (a = t.match(/<((?:\w+:)?message)>(.*)<\/\1>/)) {
+					message = "\n" + a[2];
+				}
+
+				throw new Error(r.status + ' ' + r.statusText + message); });
+		}
+		reloadListing();
+	};
+
 	const reqAndReload = (method, url, body, headers) => {
 		animateLoading();
-		req(method, url, body, headers).then(r => {
-			stopLoading();
-			if (!r.ok) {
-				return r.text().then(t => {
-					var message;
-					if (a = t.match(/<((?:\w+:)?message)>(.*)<\/\1>/)) {
-						message = "\n" + a[2];
-					}
-
-					throw new Error(r.status + ' ' + r.statusText + message); });
-			}
-			reloadListing();
-		}).catch(e => {
+		req(method, url, body, headers).then(reqHandler).catch(e => {
 			console.error(e);
 			alert(e);
 		});
@@ -152,6 +154,25 @@ const WebDAVNavigator = (url, options) => {
 			xhr.send();
 		});
 		return p;
+	};
+
+	const uploadFiles = (files) => {
+		animateLoading();
+
+		(async () => {
+			for (var i = 0; i < files.length; i++) {
+				var f = files[i];
+				await req('PUT', current_url + encodeURIComponent(f.name), f).then(reqHandler).catch(e => {
+					console.error(e);
+					alert(e);
+				});
+			}
+
+			window.setTimeout(() => {
+				stopLoading();
+				reloadListing();
+			}, 500);
+		})();
 	};
 
 	const get_url = async (url) => {
@@ -614,12 +635,7 @@ const WebDAVNavigator = (url, options) => {
 			fi.onchange = () => {
 				if (!fi.files.length) return;
 
-				var body = new Blob(fi.files);
-				var name = fi.files[0].name;
-
-				name = encodeURIComponent(name);
-
-				return reqAndReload('PUT', current_url + name, body);
+				uploadFiles(fi.files);
 			};
 		}
 
@@ -883,19 +899,7 @@ const WebDAVNavigator = (url, options) => {
 
 		if (!files.length) return;
 
-		animateLoading();
-
-		(async () => {
-			for (var i = 0; i < files.length; i++) {
-				var f = files[i]
-				await req('PUT', current_url + encodeURIComponent(f.name), f);
-			}
-
-			window.setTimeout(() => {
-				stopLoading();
-				reloadListing();
-			}, 500);
-		})();
+		uploadFiles(files);
 	});
 };
 
