@@ -39,13 +39,14 @@ const WebDAVNavigator = (url, options) => {
 				<option value="size">${_('Sort by size')}</option>
 			</select>
 			<input type="button" class="download_all" value="${_('Download all files')}" />
+			<input type="button" class="deleted_selected" value="${_('Delete selected')}" />
 		</div>
 		<table>%table%</table>`;
 
 	const create_buttons = `<input class="mkdir" type="button" value="${_('New directory')}" />
-			<input type="file" style="display: none;" multiple />
-			<input class="mkfile" type="button" value="${_('New text file')}" />
-			<input class="uploadfile" type="button" value="${_('Upload files')}" />`;
+		<input type="file" style="display: none;" multiple />
+		<input class="mkfile" type="button" value="${_('New text file')}" />
+		<input class="uploadfile" type="button" value="${_('Upload files')}" />`;
 
 	const dir_row_tpl = `<tr data-permissions="%permissions%">
 		<td class="thumb"><span class="icon dir"><b>%icon%</b></span></td>
@@ -55,7 +56,7 @@ const WebDAVNavigator = (url, options) => {
 	</tr>`;
 
 	const file_row_tpl = `<tr data-permissions="%permissions%" data-mime="%mime%" data-size="%size%">
-		<td class="thumb">%thumb%</td>
+		<td class="thumb">%thumb%<label><input type="checkbox" name="delete" value="%uri%" /><span></span></label></td>
 		<th><a href="%uri%">%name%</a></th>
 		<td class="size">%size_bytes%</td>
 		<td>%modified%</td>
@@ -94,7 +95,6 @@ const WebDAVNavigator = (url, options) => {
 	};
 
 	const reqHandler = (r) => {
-		stopLoading();
 		if (!r.ok) {
 			return r.text().then(t => {
 				var message;
@@ -102,9 +102,10 @@ const WebDAVNavigator = (url, options) => {
 					message = "\n" + a[2];
 				}
 
-				throw new Error(r.status + ' ' + r.statusText + message); });
+				throw new Error(r.status + ' ' + r.statusText + message);
+			});
 		}
-		reloadListing();
+		return r;
 	};
 
 	const reqAndReload = (method, url, body, headers) => {
@@ -162,10 +163,7 @@ const WebDAVNavigator = (url, options) => {
 		(async () => {
 			for (var i = 0; i < files.length; i++) {
 				var f = files[i];
-				await req('PUT', current_url + encodeURIComponent(f.name), f).then(reqHandler).catch(e => {
-					console.error(e);
-					alert(e);
-				});
+				await reqOrError('PUT', current_url + encodeURIComponent(f.name), f);
 			}
 
 			window.setTimeout(() => {
@@ -174,6 +172,16 @@ const WebDAVNavigator = (url, options) => {
 			}, 500);
 		})();
 	};
+
+	const reqOrError = (method, url, body) => {
+		return req(method, url, body).then(reqHandler).catch(e => {
+			console.error(e);
+			alert(e);
+			stopLoading();
+			reloadListing();
+			throw e;
+		});
+	}
 
 	const get_url = async (url) => {
 		var progress = (e) => {
@@ -593,6 +601,31 @@ const WebDAVNavigator = (url, options) => {
 		else {
 			$('.download_all').onclick = download_all;
 		}
+
+		$('.deleted_selected').onclick = () => {
+			var l = document.querySelectorAll('input[name=delete]:checked');
+
+			if (!l.length) {
+				alert(_('No file is selected'));
+				return;
+			}
+
+			openDialog(delete_dialog);
+			document.forms[0].onsubmit = () => {
+				animateLoading();
+
+				for (var i = 0; i < l.length; i++) {
+					reqOrError('DELETE', l[i].value);
+				}
+
+				// Don't reload too fast
+				window.setTimeout(() => {
+					stopLoading();
+					reloadListing();
+				}, 500);
+			};
+
+		};
 
 		if (!root_permissions || root_permissions.indexOf('C') != -1 || root_permissions.indexOf('K') != -1) {
 			$('.upload').insertAdjacentHTML('afterbegin', create_buttons);
