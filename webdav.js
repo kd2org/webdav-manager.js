@@ -643,7 +643,7 @@ const WebDAVNavigator = (url, options) => {
 
 					name = encodeURIComponent(name);
 
-					req('MKCOL', current_url + name).then(() => openListing(current_url + name + '/'));
+					req('MKCOL', current_url + '/' + name).then(() => openListing(current_url + '/' + name));
 					return false;
 				};
 			};
