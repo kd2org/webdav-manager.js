@@ -167,7 +167,8 @@ const WebDAVNavigator = (url, options) => {
 		(async () => {
 			for (var i = 0; i < files.length; i++) {
 				var f = files[i];
-				await reqOrError('PUT', current_url + encodeURIComponent(f.name), f);
+				var parent_url = current_url.endsWith('/') ? current_url : current_url + '/';
+				await reqOrError('PUT', parent_url + encodeURIComponent(f.name), f);
 			}
 
 			window.setTimeout(() => {
@@ -643,7 +644,8 @@ const WebDAVNavigator = (url, options) => {
 
 					name = encodeURIComponent(name);
 
-					req('MKCOL', current_url + '/' + name).then(() => openListing(current_url + '/' + name));
+					var parent_url = current_url.endsWith('/') ? current_url : current_url + '/';
+					req('MKCOL', parent_url + name).then(() => openListing(parent_url + name));
 					return false;
 				};
 			};
