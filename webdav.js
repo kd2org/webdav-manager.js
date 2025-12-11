@@ -6,61 +6,69 @@ const WebDAVNavigator = (url, options) => {
 	const microdown=function(){function l(n,e,r){return"<"+n+(r?" "+Object.keys(r).map(function(n){return r[n]?n+'="'+(a(r[n])||"")+'"':""}).join(" "):"")+">"+e+"</"+n+">"}function c(n,e){return e=n.match(/^[+-]/m)?"ul":"ol",n?"<"+e+">"+n.replace(/(?:[+-]|\d+\.) +(.*)\n?(([ \t].*\n?)*)/g,function(n,e,r){return"<li>"+g(e+"\n"+(t=r||"").replace(new RegExp("^"+(t.match(/^\s+/)||"")[0],"gm"),"").replace(o,c))+"</li>";var t})+"</"+e+">":""}function e(r,t,u,c){return function(n,e){return n=n.replace(t,u),l(r,c?c(n):n)}}function t(n,u){return f(n,[/<!--((.|\n)*?)-->/g,"\x3c!--$1--\x3e",/^("""|```)(.*)\n((.*\n)*?)\1/gm,function(n,e,r,t){return'"""'===e?l("div",p(t,u),{class:r}):u&&u.preCode?l("pre",l("code",a(t),{class:r})):l("pre",a(t),{class:r})},/(^>.*\n?)+/gm,e("blockquote",/^> ?(.*)$/gm,"$1",r),/((^|\n)\|.+)+/g,e("table",/^.*(\n\|---.*?)?$/gm,function(n,t){return e("tr",/\|(-?)([^|]*)\1(\|$)?/gm,function(n,e,r){return l(e||t?"th":"td",g(r))})(n.slice(0,n.length-(t||"").length))}),o,c,/#\[([^\]]+?)]/g,'<a name="$1"></a>',/^(#+) +(.*)(?:$)/gm,function(n,e,r){return l("h"+e.length,g(r))},/^(===+|---+)(?=\s*$)/gm,"<hr>"],p,u)}var i=this,a=function(n){return n?n.replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;"):""},o=/(?:(^|\n)([+-]|\d+\.) +(.*(\n[ \t]+.*)*))+/g,g=function c(n,i){var o=[];return n=(n||"").trim().replace(/`([^`]*)`/g,function(n,e){return"\\"+o.push(l("code",a(e)))}).replace(/[!&]?\[([!&]?\[.*?\)|[^\]]*?)]\((.*?)( .*?)?\)|(\w+:\/\/[$\-.+!*'()/,\w]+)/g,function(n,e,r,t,u){return u?i?n:"\\"+o.push(l("a",u,{href:u})):"&"==n[0]?(e=e.match(/^(.+),(.+),([^ \]]+)( ?.+?)?$/),"\\"+o.push(l("iframe","",{width:e[1],height:e[2],frameborder:e[3],class:e[4],src:r,title:t}))):"\\"+o.push("!"==n[0]?l("img","",{src:r,alt:e,title:t}):l("a",c(e,1),{href:r,title:t}))}),n=function r(n){return n.replace(/\\(\d+)/g,function(n,e){return r(o[Number.parseInt(e)-1])})}(i?n:r(n))},r=function t(n){return f(n,[/([*_]{1,3})((.|\n)+?)\1/g,function(n,e,r){return e=e.length,r=t(r),1<e&&(r=l("strong",r)),e%2&&(r=l("em",r)),r},/(~{1,3})((.|\n)+?)\1/g,function(n,e,r){return l([,"u","s","del"][e.length],t(r))},/  \n|\n  /g,"<br>"],t)},f=function(n,e,r,t){for(var u,c=0;c<e.length;){if(u=e[c++].exec(n))return r(n.slice(0,u.index),t)+("string"==typeof e[c]?e[c].replace(/\$(\d)/g,function(n,e){return u[e]}):e[c].apply(i,u))+r(n.slice(u.index+u[0].length),t);c++}return n},p=function(n,e){n=n.replace(/[\r\v\b\f]/g,"").replace(/\\./g,function(n){return"&#"+n.charCodeAt(1)+";"});var r=t(n,e);return r!==n||r.match(/^[\s\n]*$/i)||(r=g(r).replace(/((.|\n)+?)(\n\n+|$)/g,function(n,e){return l("p",e)})),r.replace(/&#(\d+);/g,function(n,e){return String.fromCharCode(parseInt(e))})};return{parse:p,block:t,inline:r,inlineBlock:g}}();
 
 	const PREVIEW_TYPES = /^image\/(png|webp|svg|jpeg|jpg|gif|png)|^application\/pdf|^text\/|^audio\/|^video\/|application\/x-empty/;
+	const PREVIEW_EXTENSIONS = /\.(?:png|webp|svg|jpeg|jpg|gif|png|pdf|txt|md|mp4|mkv|webm|ogg|flac|mp3|aac|m4a|avi)$/i;
 
 	const _ = key => typeof lang_strings != 'undefined' && key in lang_strings ? lang_strings[key] : key;
 
-	const rename_button = `<input class="rename" type="button" value="${_('Rename')}" />`;
-	const delete_button = `<input class="delete" type="button" value="${_('Delete')}" />`;
+	const rename_button = `<input class="icon rename" type="button" value="${_('Rename')}" title="${_('Rename')}" />`;
+	const delete_button = `<input class="icon delete" type="button" value="${_('Delete')}" title="${_('Delete')}" />`;
 
-	const edit_button = `<input class="edit" type="button" value="${_('Edit')}" />`;
+	const edit_button = `<input class="icon edit" type="button" value="${_('Edit')}" title="${_('Edit')}" />`;
 
 	const mkdir_dialog = `<input type="text" name="mkdir" placeholder="${_('Directory name')}" />`;
 	const mkfile_dialog = `<input type="text" name="mkfile" placeholder="${_('File name')}" />`;
 	const rename_dialog = `<input type="text" name="rename" placeholder="${_('New file name')}" />`;
 	const paste_upload_dialog = `<h3>Upload this file?</h3><input type="text" name="paste_name" placeholder="${_('New file name')}" />`;
 	const edit_dialog = `<textarea name="edit" cols="70" rows="30"></textarea>`;
-	const markdown_dialog = `<div id="mdp"><textarea name="edit" cols="70" rows="30"></textarea><div id="md"></div></div>`;
+	const markdown_dialog = `<div id="mdp"><textarea name="edit" cols="70" rows="30"></textarea><div class="md_preview"></div></div>`;
 	const delete_dialog = `<h3>${_('Confirm delete?')}</h3>`;
-	const wopi_dialog = `<iframe id="wopi_frame" name="wopi_frame" allowfullscreen="true" allow="autoplay camera microphone display-capture"
-			sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation allow-popups-to-escape-sandbox allow-downloads allow-modals">
+	const wopi_dialog = `<iframe id="wopi_frame" name="wopi_frame" allow="clipboard-read *; clipboard-write *;" allowfullscreen="true">
 		</iframe>`;
 
 	const dialog_tpl = `<dialog open><p class="close"><input type="button" value="&#x2716; ${_('Close')}" class="close" /></p><form><div>%s</div>%b</form></dialog>`;
 
 	const html_tpl = `<!DOCTYPE html><html>
-		<head><title>Files</title><link rel="stylesheet" type="text/css" href="${css_url}" /></head>
+		<head><title></title><link rel="stylesheet" type="text/css" href="${css_url}" /></head>
 		<body><main></main><div class="bg"></div></body></html>`;
 
-	const body_tpl = `<h1>%title%</h1>
-		<div class="upload">
-			<select class="sortorder btn">
-				<option value="name">${_('Sort by name')}</option>
-				<option value="date">${_('Sort by date')}</option>
-				<option value="size">${_('Sort by size')}</option>
-			</select>
-			<input type="button" class="download_all" value="${_('Download all files')}" />
-			<input type="button" class="deleted_selected" value="${_('Delete selected')}" />
+	const body_tpl = `
+		<div class="buttons">
+			<div class="selected">
+				<input type="button" class="icon download" value="${_('Download')}" />
+				<input type="button" class="icon delete" value="${_('Delete')}" />
+			</div>
 		</div>
-		<table>%table%</table>`;
+		<table>
+			<thead>
+				<tr>
+					<td scope="col" class="check"><input type="checkbox" name="delete" value="%uri%" /><label><span></span></label></td>
+					<td scope="col" class="name" data-sort="name"><button>${_('Name')}</button></td>
+					<td scope="col" class="size" data-sort="size"><button>${_('Size')}</button></td>
+					<td scope="col" class="date" data-sort="date"><button>${_('Date')}</button></td>
+					<td></td>
+				</tr>
+			</thead>
+			<tbody>%table%</tbody>
+		</table>`;
 
-	const create_buttons = `<input class="mkdir" type="button" value="${_('New directory')}" />
+	const create_buttons = `<input class="icon mkdir" type="button" value="${_('New directory')}" />
 		<input type="file" style="display: none;" multiple />
-		<input class="mkfile" type="button" value="${_('New text file')}" />
-		<input class="uploadfile" type="button" value="${_('Upload files')}" />`;
+		<input class="icon mkfile" type="button" value="${_('New text file')}" />
+		<input class="icon upload" type="button" value="${_('Upload files')}" />`;
 
-	const dir_row_tpl = `<tr data-permissions="%permissions%">
-		<td class="thumb"><span class="icon dir"><b>%icon%</b></span></td>
-		<th colspan="2"><a href="%uri%">%name%</a></th>
-		<td>%modified%</td>
+	const dir_row_tpl = `<tr data-permissions="%permissions%" class="%class%" data-name="%name%">
+		<td class="check"><input type="checkbox" name="delete" value="%uri%" /><label><span></span></label></td>
+		<th colspan="2"><a href="%uri%">%thumb% %name%</a></th>
+		<td class="date">%modified%</td>
 		<td class="buttons"><div></div></td>
 	</tr>`;
 
-	const file_row_tpl = `<tr data-permissions="%permissions%" data-mime="%mime%" data-size="%size%">
-		<td class="thumb">%thumb%<label><input type="checkbox" name="delete" value="%uri%" /><span></span></label></td>
-		<th><a href="%uri%">%name%</a></th>
+	const file_row_tpl = `<tr data-permissions="%permissions%" data-mime="%mime%" data-size="%size%" data-name="%name%">
+		<td class="check"><input type="checkbox" name="delete" value="%uri%" /><label><span></span></label></td>
+		<th><a href="%uri%">%thumb% %name%</a></th>
 		<td class="size">%size_bytes%</td>
-		<td>%modified%</td>
-		<td class="buttons"><div><a href="%uri%" download class="btn">${_('Download')}</a></div></td>
+		<td class="date">%modified%</td>
+		<td class="buttons"><div><a href="%uri%" download title="${_('Download')}" class="btn">${_('Download')}</a></div></td>
 	</tr>`;
 
 	const icon_tpl = `<span class="icon %icon%"><b>%icon%</b></span>`;
@@ -354,14 +362,18 @@ const WebDAVNavigator = (url, options) => {
 		window.onbeforeunload = null;
 	};
 
-	const download_all = async () => {
+	const download_selected = async () => {
+		var items = document.querySelectorAll('tbody input[type=checkbox]:checked');
 		for (var i = 0; i < items.length; i++) {
-			var item = items[i];
-			if (item.is_dir) {
-				continue;
+			var input = items[i];
+			var row = input.parentNode.parentNode;
+
+			// Skip directories
+			if (!row.dataset.mime) {
+				return;
 			}
 
-			await download(item.name, item.size, item.uri)
+			await download(row.dataset.name, row.dataset.size, row.querySelector('th a').href);
 		}
 	};
 
@@ -421,7 +433,7 @@ const WebDAVNavigator = (url, options) => {
 			return _('Yesterday, %s').replace(/%s/, date.toLocaleTimeString());
 		}
 
-		return date.toLocaleString();
+		return date.toLocaleString([], {year: 'numeric', month: 'numeric', day: 'numeric'});
 	};
 
 	const openListing = (uri, push) => {
@@ -483,7 +495,7 @@ const WebDAVNavigator = (url, options) => {
 	const buildListing = (uri, xml) => {
 		uri = normalizeURL(uri);
 
-		items = [[], []];
+		items = [];
 		var title = null;
 		var root_permissions = null;
 
@@ -516,9 +528,9 @@ const WebDAVNavigator = (url, options) => {
 			}
 
 			var is_dir = node.querySelector('resourcetype collection') ? true : false;
-			var index = sort_order == 'name' && is_dir ? 0 : 1;
+			var index = is_dir ? 0 : 1;
 
-			items[index].push({
+			items.push({
 				'uri': item_uri,
 				'path': item_uri.substring(base_url.length),
 				'name': name,
@@ -530,39 +542,35 @@ const WebDAVNavigator = (url, options) => {
 			});
 		});
 
-		if (sort_order == 'name') {
-			items[0].sort((a, b) => a.name.localeCompare(b.name));
-		}
-
-		items[1].sort((a, b) => {
-			if (sort_order == 'date') {
-				return b.modified - a.modified;
+		items.sort((a, b) => {
+			if (sort_order === 'date') {
+				return a.modified - b.modified;
 			}
-			else if (sort_order == 'size') {
-				return b.size - a.size;
+			else if (sort_order === 'size') {
+				return a.size - b.size;
 			}
 			else {
 				return a.name.localeCompare(b.name);
 			}
 		});
 
-		if (sort_order == 'name') {
+		if (sort_order !== 'date') {
 			// Sort with directories first
-			items = items[0].concat(items[1]);
-		}
-		else {
-			items = items[1];
+			items.sort((a, b) => b.is_dir - a.is_dir);
 		}
 
+		if (sort_order_desc) {
+			items = items.reverse();
+		}
 
 		var table = '';
 		var parent = uri.replace(/\/+$/, '').split('/').slice(0, -1).join('/') + '/';
 
 		if (parent.length >= base_url.length) {
-			table += template(dir_row_tpl, {'name': _('Back'), 'uri': parent, 'icon': '&#x21B2;'});
+			table += template(dir_row_tpl, {'name': _('Back'), 'uri': parent, 'class': 'parent', 'thumb': template(icon_tpl, {})});
 		}
 		else {
-			title = 'My files';
+			title = _('My files');
 		}
 
 		items.forEach(item => {
@@ -574,7 +582,17 @@ const WebDAVNavigator = (url, options) => {
 
 			var row = item.is_dir ? dir_row_tpl : file_row_tpl;
 			item.size_bytes = item.size !== null ? formatBytes(item.size).replace(/ /g, '&nbsp;') : null;
-			item.icon = item.is_dir ? '&#x1F4C1;' : (item.uri.indexOf('.') > 0 ? item.uri.replace(/^.*\.(\w+)$/, '$1').toUpperCase() : '');
+
+			if (!item.is_dir && (pos = item.uri.lastIndexOf('.'))) {
+				var ext = item.uri.substr(pos+1).toUpperCase();
+
+				if (ext.length > 4) {
+					ext = '';
+				}
+			}
+
+			item.icon = ext ?? '';
+			item.class = item.is_dir ? 'dir' : 'file';
 			item.modified = item.modified !== null ? formatDate(item.modified) : null;
 			item.name = html(item.name);
 
@@ -591,22 +609,40 @@ const WebDAVNavigator = (url, options) => {
 		document.title = title;
 		document.querySelector('main').innerHTML = template(body_tpl, {'title': html(document.title), 'base_url': base_url, 'table': table});
 
-		var select = $('.sortorder');
-		select.value = sort_order;
-		select.onchange = () => {
-			sort_order = select.value;
-			window.localStorage.setItem('sort_order', sort_order);
+		var parent_check = document.querySelector('tbody tr.parent .check');
+
+		if (parent_check) {
+			parent_check.innerHTML = '';
+		}
+
+		var column = document.querySelector('thead td[data-sort="' + sort_order + '"]').className += ' selected ' + (sort_order_desc ? 'desc' : 'asc');
+
+		document.querySelectorAll('thead td[data-sort] button').forEach(elm => elm.onclick = (e) => {
+			var new_sort_order = e.target.parentNode.dataset.sort;
+
+			if (sort_order == new_sort_order) {
+				sort_order_desc = !sort_order_desc;
+			}
+
+			sort_order = new_sort_order;
+
+			window.localStorage.setItem('sort_order', new_sort_order);
+			window.localStorage.setItem('sort_order_desc', sort_order_desc ? '1' : '0');
 			reloadListing();
+		});
+
+		document.querySelector('thead td.check input').onchange = (e) => {
+			document.querySelectorAll('tbody td.check input').forEach(i => i.checked = e.target.checked);
 		};
 
 		if (!items.length) {
-			$('.download_all').disabled = true;
+			$('div.buttons .download').disabled = true;
 		}
 		else {
-			$('.download_all').onclick = download_all;
+			$('div.buttons .download').onclick = download_selected;
 		}
 
-		$('.deleted_selected').onclick = () => {
+		$('div.buttons .delete').onclick = () => {
 			var l = document.querySelectorAll('input[name=delete]:checked');
 
 			if (!l.length) {
@@ -632,7 +668,7 @@ const WebDAVNavigator = (url, options) => {
 		};
 
 		if (!root_permissions || root_permissions.indexOf('C') != -1 || root_permissions.indexOf('K') != -1) {
-			$('.upload').insertAdjacentHTML('afterbegin', create_buttons);
+			$('.buttons').insertAdjacentHTML('beforeend', create_buttons);
 
 			$('.mkdir').onclick = () => {
 				openDialog(mkdir_dialog);
@@ -667,7 +703,7 @@ const WebDAVNavigator = (url, options) => {
 
 			var fi = $('input[type=file]');
 
-			$('.uploadfile').onclick = () => fi.click();
+			$('.upload').onclick = () => fi.click();
 
 			fi.onchange = () => {
 				if (!fi.files.length) return;
@@ -676,10 +712,10 @@ const WebDAVNavigator = (url, options) => {
 			};
 		}
 
-		Array.from($('table').rows).forEach((tr) => {
+		document.querySelectorAll('table tbody tr').forEach(tr => {
 			var $$ = (a) => tr.querySelector(a);
 			var file_url = $$('a').href;
-			var file_name = $$('a').innerText;
+			var file_name = tr.dataset.name;
 			var dir = $$('[colspan]');
 			var mime = !dir ? tr.getAttribute('data-mime') : 'dir';
 			var buttons = $$('td.buttons div');
@@ -753,10 +789,20 @@ const WebDAVNavigator = (url, options) => {
 			}
 
 			var view_url, edit_url;
+			var allow_preview = false;
+
+			if (mime.match(PREVIEW_TYPES)
+				|| file_name.match(PREVIEW_EXTENSIONS)) {
+				allow_preview = true;
+			}
 
 			// Don't preview PDF in mobile
-			if (mime.match(PREVIEW_TYPES)
-				&& !(mime == 'application/pdf' && window.navigator.userAgent.match(/Mobi|Tablet|Android|iPad|iPhone/))) {
+			if ((mime == 'application/pdf' || file_name.match(/\.pdf/i))
+				&& window.navigator.userAgent.match(/Mobi|Tablet|Android|iPad|iPhone/)) {
+				allow_preview = false;
+			}
+
+			if (allow_preview) {
 				$$('a').onclick = () => {
 					if (file_url.match(/\.md$/)) {
 						openDialog('<div class="md_preview"></div>', false);
@@ -784,7 +830,7 @@ const WebDAVNavigator = (url, options) => {
 			else if (user && password && !dir) {
 				$$('a').onclick = () => { download(file_name, size, file_url); return false; };
 			}
-			else {
+			else if (!dir) {
 				$$('a').download = file_name;
 			}
 
@@ -882,7 +928,7 @@ const WebDAVNavigator = (url, options) => {
 
 							// Markdown editor
 							if (md) {
-								let pre = $('#md');
+								let pre = $('.md_preview');
 
 								txt.oninput = () => {
 									pre.innerHTML = microdown.parse(txt.value);
@@ -936,6 +982,7 @@ const WebDAVNavigator = (url, options) => {
 
 	var evt, paste_upload, popstate_evt, temp_object_url;
 	var sort_order = window.localStorage.getItem('sort_order') || 'name';
+	var sort_order_desc = !!parseInt(window.localStorage.getItem('sort_order_desc'), 10);
 	var wopi_mimes = {}, wopi_extensions = {};
 
 	const wopi_discovery_url = options.wopi_discovery_url || null;
@@ -1014,7 +1061,9 @@ const WebDAVNavigator = (url, options) => {
 		document.body.classList.remove('dragging');
 		dragcounter = 0;
 
-		const files = [...e.dataTransfer.items].map(item => item.getAsFile());
+		var files = [...e.dataTransfer.items].map(item => item.getAsFile());
+
+		files = files.filter(f => f !== null);
 
 		if (!files.length) return;
 
