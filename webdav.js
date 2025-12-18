@@ -39,7 +39,7 @@ const WebDAVNavigator = async function (url, options) {
 		<body><main></main><div class="bg"></div></body></html>`;
 
 	const body_tpl = `
-		<div class="buttons">
+		<div class="toolbar">
 			<div class="selected">
 				<input type="button" class="icon download" value="${_('Download')}" />
 				<input type="button" class="icon delete" value="${_('Delete')}" />
@@ -47,6 +47,22 @@ const WebDAVNavigator = async function (url, options) {
 				<input type="button" class="icon copy" value="${_('Copy')}" />
 			</div>
 			<div class="paste">
+			</div>
+			<div class="create">
+				<input type="file" style="display: none;" multiple />
+				<input class="icon upload" type="button" value="${_('Upload files')}" />
+				<input class="icon mk" type="button" value="${_('New')}" />
+				<div class="menu">
+					<input class="icon mkdir" type="button" value="${_('Directory')}" />
+					<input class="icon mktext" type="button" value="${_('Text file')}" />
+					<div class="wopi">
+						<h5>${_('Office document')}</h5>
+						<input class="icon ODT" type="button" value="${_('Text')}" />
+						<input class="icon ODS" type="button" value="${_('Spreadsheet')}" />
+						<input class="icon ODP" type="button" value="${_('Presentation')}" />
+						<input class="icon ODG" type="button" value="${_('Drawing')}" />
+					</div>
+				</div>
 			</div>
 		</div>
 		<table>
@@ -61,20 +77,6 @@ const WebDAVNavigator = async function (url, options) {
 			</thead>
 			<tbody>%table%</tbody>
 		</table>`;
-
-	const create_buttons = `<input type="file" style="display: none;" multiple />
-		<input class="icon upload" type="button" value="${_('Upload files')}" />
-		<input class="icon mk" type="button" value="${_('New')}" />
-		<div class="menu">
-			<input class="icon mkdir" type="button" value="${_('Directory')}" />
-			<input class="icon mktext" type="button" value="${_('Text file')}" />
-		</div>`;
-
-	const create_wopi_buttons = `<h5>${_('Office document')}</h5>
-			<input class="icon ODT" type="button" value="${_('Text')}" />
-			<input class="icon ODS" type="button" value="${_('Spreadsheet')}" />
-			<input class="icon ODP" type="button" value="${_('Presentation')}" />
-			<input class="icon ODG" type="button" value="${_('Drawing')}" />`;
 
 	const paste_widget = `<div><strong>${_('%count% files selected')}</strong>
 		<input type="button" value="%label%" class="icon %action%" />
@@ -239,7 +241,7 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	browser.cancelPasteSelection = function () {
-		$('.buttons .paste').style.display = 'none';
+		css.hide('.toolbar .paste');
 		browser.paste_selection = [];
 		browser.paste_action = null;
 	};
@@ -272,18 +274,157 @@ const WebDAVNavigator = async function (url, options) {
 		}
 
 		var label = action == 'copy' ? _('Copy here') : _('Move here');
-		$('.buttons .paste').innerHTML = template(paste_widget, {
+		$('.toolbar .paste').innerHTML = template(paste_widget, {
 			'count' : browser.paste_selection.length,
 			action,
 			label
 		});
 
-		$('.buttons .paste').style.display = 'flex';
-		$('.buttons .paste .cancel').onclick = browser.cancelPasteSelection;
+		css.show('.toolbar .paste');
+		$('.toolbar .paste .cancel').onclick = browser.cancelPasteSelection;
 
-		$('.buttons .paste .move, .buttons .paste .copy').onclick = browser.applyPasteSelection;
+		$('.toolbar .paste .move, .toolbar .paste .copy').onclick = browser.applyPasteSelection;
 	};
 
+	browser.downloadSelectedFiles = async () => {
+		var items = document.querySelectorAll('tbody input[type=checkbox]:checked');
+		for (var i = 0; i < items.length; i++) {
+			var input = items[i];
+			var row = input.parentNode.parentNode;
+
+			// Skip directories
+			if (!row.dataset.mime) {
+				return;
+			}
+
+			await download(row.dataset.name, row.dataset.size, row.querySelector('th a').href);
+		}
+	};
+
+	browser.deleteSelectedFiles = () => {
+		var l = document.querySelectorAll('input[name=delete]:checked');
+
+		if (!l.length) {
+			alert(_('No file is selected'));
+			return;
+		}
+
+		openDialog(delete_dialog);
+		document.forms[0].onsubmit = () => {
+			animateLoading();
+
+			for (var i = 0; i < l.length; i++) {
+				reqOrError('DELETE', l[i].value);
+			}
+
+			// Don't reload too fast
+			window.setTimeout(() => {
+				stopLoading();
+				browser.reload();
+			}, 500);
+		};
+	};
+
+	var css = {};
+	css.all = (selector) => document.querySelectorAll(selector);
+	css.hide = (selector) => css.all(selector).forEach(e => e.style.display = 'none');
+	css.show = (selector) => css.all(selector).forEach(e => e.style.display = 'inherit');
+	css.toggle = (selector, show) => show ? css.show(selector) : css.hide(selector);
+	css.onclick = (selector, callback) => css.all(selector).forEach(el => el.onclick = (ev) => callback(ev, el));
+
+	browser.createToolbar = () => {
+		$('.toolbar .download').onclick = browser.downloadSelectedFiles;
+		$('.toolbar .copy').onclick = () => browser.createPasteSelection('copy');
+		$('.toolbar .cut').onclick = () => browser.createPasteSelection('move');
+		$('.toolbar .delete').onclick = () => browser.deleteSelectedFiles;
+
+		// Hide stuff that can only be used if permissions allow
+		css.hide('.toolbar .create, .toolbar .copy, .toolbar .cut, .toolbar .delete, .toolbar .menu, .toolbar .menu .wopi');
+
+		var menu = $('.toolbar .menu');
+		menu.dataset.visible = '0';
+
+		var toggle_menu = () => {
+			menu.dataset.visible = menu.dataset.visible == 0 ? 1 : 0;
+			menu.style.display = menu.dataset.visible == 1 ? 'flex' : 'none';
+		};
+
+		$('.toolbar .mk').onclick = toggle_menu;
+
+		if (wopi.extensions) {
+			css.show('.toolbar .menu .wopi');
+
+			css.onclick('.toolbar .menu .wopi input', (ev, btn) => {
+				toggle_menu();
+				openDialog(mkfile_dialog);
+				var t = $('input[name=mkfile]');
+				var ext = btn.className.substr(-3).toLowerCase();
+				t.focus();
+				document.forms[0].onsubmit = () => {
+					var name = t.value;
+					closeDialog();
+
+					if (!name) return false;
+
+					name = encodeURIComponent(name + '.' + ext);
+					var file_url = current_url + name;
+
+					// Cannot use atob here, or JS will send blob as unicode text
+					fetch('data:application/octet-stream;base64,' + OPENDOCUMENT_TEMPLATES[ext]).then(r => r.blob()).then(r => {
+						req('PUT', file_url, r, {'Content-Type': 'application/octet-stream'}).then(() => {
+							wopi.open(file_url, wopi.getEditURL(file_url, ext));
+						});
+					});
+
+					return false;
+				};
+			});
+		}
+
+		$('.mkdir').onclick = () => {
+			openDialog(mkdir_dialog);
+			document.forms[0].onsubmit = () => {
+				var name = $('input[name=mkdir]').value;
+
+				if (!name) return false;
+
+				name = encodeURIComponent(name);
+
+				req('MKCOL', current_url + name).then(() => browser.open(current_url + name + '/', true));
+				return false;
+			};
+		};
+
+		$('.mktext').onclick = () => {
+			openDialog(mkfile_dialog);
+			var t = $('input[name=mkfile]');
+			t.value = '.md';
+			t.focus();
+			t.selectionStart = t.selectionEnd = 0;
+			document.forms[0].onsubmit = () => {
+				var name = t.value;
+
+				if (!name) return false;
+
+				name = encodeURIComponent(name);
+
+				return reqAndReload('PUT', current_url + name, '');
+			};
+		};
+
+		var fi = $('input[type=file]');
+
+		$('.upload').onclick = () => fi.click();
+
+		fi.onchange = () => {
+			if (!fi.files.length) return;
+			uploadFiles(fi.files);
+		};
+	};
+
+	browser.setRootPermissions = (perms) => {
+		css.toggle('toolbar .create', !perms || perms.indexOf('C') != -1 || perms.indexOf('K') != -1);
+	};
 
 	const reqXML = (method, url, body, headers) => {
 		return req(method, url, body, headers).then((r) => {
@@ -542,21 +683,6 @@ const WebDAVNavigator = async function (url, options) {
 		window.onbeforeunload = null;
 	};
 
-	const download_selected = async () => {
-		var items = document.querySelectorAll('tbody input[type=checkbox]:checked');
-		for (var i = 0; i < items.length; i++) {
-			var input = items[i];
-			var row = input.parentNode.parentNode;
-
-			// Skip directories
-			if (!row.dataset.mime) {
-				return;
-			}
-
-			await download(row.dataset.name, row.dataset.size, row.querySelector('th a').href);
-		}
-	};
-
 	const preview = (type, url) => {
 		if (type.match(/^image\//)) {
 			openDialog(`<img src="${url}" />`, false);
@@ -756,120 +882,8 @@ const WebDAVNavigator = async function (url, options) {
 			document.querySelectorAll('tbody td.check input').forEach(i => i.checked = e.target.checked);
 		};
 
-		$('div.buttons .download').onclick = download_selected;
-		$('div.buttons .copy').onclick = () => browser.createPasteSelection('copy');
-		$('div.buttons .cut').onclick = () => browser.createPasteSelection('move');
-
-		$('div.buttons .delete').onclick = () => {
-			var l = document.querySelectorAll('input[name=delete]:checked');
-
-			if (!l.length) {
-				alert(_('No file is selected'));
-				return;
-			}
-
-			openDialog(delete_dialog);
-			document.forms[0].onsubmit = () => {
-				animateLoading();
-
-				for (var i = 0; i < l.length; i++) {
-					reqOrError('DELETE', l[i].value);
-				}
-
-				// Don't reload too fast
-				window.setTimeout(() => {
-					stopLoading();
-					browser.reload();
-				}, 500);
-			};
-
-		};
-
-		if (!root_permissions || root_permissions.indexOf('C') != -1 || root_permissions.indexOf('K') != -1) {
-			$('.buttons').insertAdjacentHTML('beforeend', create_buttons);
-
-			var menu = $('.buttons .menu');
-			menu.dataset.visible = '0';
-			menu.style.display = 'none';
-
-			var toggle_menu = () => {
-				menu.dataset.visible = menu.dataset.visible == 0 ? 1 : 0;
-				menu.style.display = menu.dataset.visible == 1 ? 'flex' : 'none';
-			};
-
-			$('.buttons > .mk').onclick = toggle_menu;
-
-			if (wopi.extensions) {
-				menu.insertAdjacentHTML('beforeend', create_wopi_buttons);
-
-				menu.querySelectorAll('.ODS, .ODT, .ODG, .ODP').forEach(btn => btn.onclick = () => {
-					toggle_menu();
-					openDialog(mkfile_dialog);
-					var t = $('input[name=mkfile]');
-					var ext = btn.className.substr(-3).toLowerCase();
-					t.focus();
-					document.forms[0].onsubmit = () => {
-						var name = t.value;
-						closeDialog();
-
-						if (!name) return false;
-
-						name = encodeURIComponent(name + '.' + ext);
-						var file_url = current_url + name;
-
-						// Cannot use atob here, or JS will send blob as unicode text
-						fetch('data:application/octet-stream;base64,' + OPENDOCUMENT_TEMPLATES[ext]).then(r => r.blob()).then(r => {
-							req('PUT', file_url, r, {'Content-Type': 'application/octet-stream'}).then(() => {
-								wopi.open(file_url, wopi.getEditURL(file_url, ext));
-							});
-						});
-
-						return false;
-					};
-				});
-			}
-
-			$('.mkdir').onclick = () => {
-				openDialog(mkdir_dialog);
-				document.forms[0].onsubmit = () => {
-					var name = $('input[name=mkdir]').value;
-
-					if (!name) return false;
-
-					name = encodeURIComponent(name);
-
-					req('MKCOL', current_url + name).then(() => browser.open(current_url + name + '/', true));
-					return false;
-				};
-			};
-
-			$('.mktext').onclick = () => {
-				openDialog(mkfile_dialog);
-				var t = $('input[name=mkfile]');
-				t.value = '.md';
-				t.focus();
-				t.selectionStart = t.selectionEnd = 0;
-				document.forms[0].onsubmit = () => {
-					var name = t.value;
-
-					if (!name) return false;
-
-					name = encodeURIComponent(name);
-
-					return reqAndReload('PUT', current_url + name, '');
-				};
-			};
-
-			var fi = $('input[type=file]');
-
-			$('.upload').onclick = () => fi.click();
-
-			fi.onchange = () => {
-				if (!fi.files.length) return;
-
-				uploadFiles(fi.files);
-			};
-		}
+		browser.createToolbar();
+		browser.setRootPermissions(root_permissions);
 
 		document.querySelectorAll('table tbody tr').forEach(tr => {
 			var $$ = (a) => tr.querySelector(a);
