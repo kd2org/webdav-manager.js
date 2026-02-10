@@ -98,15 +98,15 @@ const WebDAVNavigator = async function (url, options) {
 	</tr>`;
 
 	const dir_row_tpl = `<tr data-permissions="%permissions%" class="%class%" data-name="%name%">
-		<td class="check"><input type="checkbox" name="delete" value="%uri%" /><label><span></span></label></td>
-		<th colspan="2"><a href="%uri%">%thumb% %name%</a></th>
+		<td class="check"><input type="checkbox" name="delete" value="%url%" /><label><span></span></label></td>
+		<th colspan="2"><a href="%url%">%thumb% %name%</a></th>
 		<td class="date">%modified%</td>
 		<td class="buttons"><div>${rename_button} ${delete_button}</div></td>
 	</tr>`;
 
 	const file_row_tpl = `<tr data-permissions="%permissions%" data-mime="%mime%" data-size="%size%" data-name="%name%">
-		<td class="check"><input type="checkbox" name="delete" value="%uri%" /><label><span></span></label></td>
-		<th><a href="%uri%">%thumb% %name%</a></th>
+		<td class="check"><input type="checkbox" name="delete" value="%url%" /><label><span></span></label></td>
+		<th><a href="%url%">%thumb% %name%</a></th>
 		<td class="size">%size_bytes%</td>
 		<td class="date">%modified%</td>
 		<td class="buttons"><div>${edit_button} ${download_button} ${rename_button} ${delete_button}</div></td>
@@ -245,7 +245,7 @@ const WebDAVNavigator = async function (url, options) {
 		return new window.DOMParser().parseFromString(r, "text/xml");
 	};
 
-	dav.list = async function (url) {
+	dav.list = async function (parent_url) {
 		const body = '<'+ `?xml version="1.0" encoding="UTF-8"?>
 			<D:propfind xmlns:D="DAV:" xmlns:oc="http://owncloud.org/ns">
 				<D:prop>
@@ -253,13 +253,16 @@ const WebDAVNavigator = async function (url, options) {
 				</D:prop>
 			</D:propfind>`;
 
-		url = normalizeURL(url);
-		var xml = await dav.propfind(url, body, 1);
+		parent_url = normalizeURL(parent_url);
+		var xml = await dav.propfind(parent_url, body, 1);
 		var files = {};
 
-		xml.querySelectorAll('response').forEach((node) => {
+		var list = xml.querySelectorAll('response');
+
+		for (var i = 0; i < list.length; i++) {
+			var node = list[i];
 			var path = node.querySelector('href').textContent;
-			var uri = normalizeURL(path);
+			var url = normalizeURL(path);
 			var props = null;
 
 			node.querySelectorAll('propstat').forEach(propstat => {
@@ -270,11 +273,11 @@ const WebDAVNavigator = async function (url, options) {
 
 			// This item didn't return any properties, everything is 404?
 			if (!props) {
-				console.error('Cannot find properties for: ' + uri);
+				console.error('Cannot find properties for: ' + url);
 				return;
 			}
 
-			var name = uri.replace(/\/$/, '').split('/').pop();
+			var name = url.replace(/\/$/, '').split('/').pop();
 			name = decodeURIComponent(name);
 			var is_dir = node.querySelector('resourcetype collection') ? true : false;
 
@@ -305,10 +308,16 @@ const WebDAVNavigator = async function (url, options) {
 				size = parseInt(prop.textContent, 10);
 			}
 
-			var path = uri.substring(base_url.length);
+			var path = url.substring(base_url.length);
 
-			files[uri === url ? '.' : name] = {uri, path, name, size, mime, modified, is_dir, permissions};
-		});
+			var extension = null;
+
+			if (!is_dir && (m = url.match(/\.([^./]{1,4})$/))) {
+				extension = m[1].toLowerCase();
+			}
+
+			files[url === parent_url ? '.' : name] = {url, path, name, size, mime, modified, is_dir, permissions, extension};
+		}
 
 		return files;
 	};
@@ -355,19 +364,19 @@ const WebDAVNavigator = async function (url, options) {
 		closeDialog();
 		browser.url = normalizeURL(url);
 		dav.list(url).then(files => {
-			browser.current = files['.'];
+			browser.root = files['.'];
 			delete files['.'];
 			browser.files = files;
 
-			var title = browser.current.name;
+			var title = browser.root.name;
 
-			if (browser.current.url === base_url) {
+			if (browser.root.url === base_url) {
 				title = _('My files');
 			}
 
 			document.title = title;
 
-			browser.setRootPermissions(browser.current.permissions);
+			browser.setRootPermissions(browser.root.permissions);
 			browser.createFilesList();
 
 			changeURL(browser.url, push_history);
@@ -402,7 +411,7 @@ const WebDAVNavigator = async function (url, options) {
 		var rows = '';
 
 		// Add link to parent directory
-		if (browser.current.url !== base_url) {
+		if (browser.root.url !== base_url) {
 			rows += parent_row_tpl;
 		}
 
@@ -417,15 +426,7 @@ const WebDAVNavigator = async function (url, options) {
 			var row = item.is_dir ? dir_row_tpl : file_row_tpl;
 			item.size_bytes = item.size !== null ? formatBytes(item.size).replace(/ /g, '&nbsp;') : null;
 
-			if (!item.is_dir && (pos = item.uri.lastIndexOf('.'))) {
-				var ext = item.uri.substr(pos+1).toUpperCase();
-
-				if (ext.length > 4) {
-					ext = '';
-				}
-			}
-
-			item.icon = ext || '';
+			item.icon = (item.extension || '').toUpperCase();
 			item.class = item.is_dir ? 'dir' : 'file';
 			item.modified = item.modified !== null ? formatDate(item.modified) : null;
 			item.name = html(item.name);
@@ -462,11 +463,11 @@ const WebDAVNavigator = async function (url, options) {
 		}
 
 		if (!p.includes(PERM_SHARE)) {
-			hideButton('share');
+			//hideButton('share');
 		}
 
 		if (!p.includes(PERM_SHARED)) {
-			hideButton('shared');
+			//hideButton('shared');
 		}
 
 		// if (mime.match(/^text\/|application\/x-empty/))
@@ -474,8 +475,8 @@ const WebDAVNavigator = async function (url, options) {
 
 	browser.createRowActions = (tr) => {
 		// Ignore parent row
-		if (p = tr.classList.contains('parent')) {
-			p.querySelector('a').onclick = () => {
+		if (tr.classList.contains('parent')) {
+			tr.querySelector('a').onclick = () => {
 				browser.open(dirname(file_url));
 				return false;
 			};
@@ -484,7 +485,13 @@ const WebDAVNavigator = async function (url, options) {
 
 		var $$ = (a) => tr.querySelector(a);
 		var url = $$('a').href;
-		var file = browser.files[url];
+		var url_name = decodeURIComponent(basename(url.trim('/')));
+		var file = browser.files[url_name];
+
+		if (!file) {
+			console.log(tr, url, url_name, browser.files);
+			return;
+		}
 
 		browser.setRowPermissions(tr, file);
 
@@ -496,7 +503,7 @@ const WebDAVNavigator = async function (url, options) {
 
 		if (file.is_dir) {
 			$$('a').onclick = () => {
-				browser.open(file_url, true);
+				browser.open(uri, true);
 				return false;
 			};
 
@@ -515,7 +522,7 @@ const WebDAVNavigator = async function (url, options) {
 
 				if (!name) return false;
 
-				return reqMove(file_url, current_url + encodeURIComponent(name));
+				return reqMove(uri, current_url + encodeURIComponent(name));
 			};
 		};
 
