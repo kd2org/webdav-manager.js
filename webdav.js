@@ -11,6 +11,19 @@ const WebDAVNavigator = async function (url, options) {
 		'odt': 'UEsDBBQAAAAAAPMbH0texjIMJwAAACcAAAAIAAAAbWltZXR5cGVhcHBsaWNhdGlvbi92bmQub2FzaXMub3BlbmRvY3VtZW50LnRleHRQSwMEFAAAAAgA3U0SUeqX5meSAAAAMQEAABUAAABNRVRBLUlORi9tYW5pZmVzdC54bWyVUEEOgzAMu+8VqHfa7Rq1/CUqQavUphUNE/wemDTYNO2wW2I7thWbkMNAVeA1NHOKXI/VqWlkyFhDBcZEFcRDLsR99lMiFvjUw01fVXdp7AEMIVK7CcelObEpxrag3J0y6oQT9QFbWQo5haXE4FFCZvPgXj8r6PdkLTSLMv+E+cyyX26df8TunmanN19rvr7TrVBLAwQUAAAACACQThJRWmJBaH8AAADjAAAACwAAAGNvbnRlbnQueG1sXY/RCsMgDEXf+xWj767ba+j8FxcjCGpKE6H9+wlbRfYUbs69uWTlECISeMaaqahBLtrm7cipCHzpa657AXYSBYrLJKAIvFG5UjC64Xl/zHZaf0pwj5vKYq9FaA0mOCTjCdMAXFXOTiMa0TNRI/3Im/3ZfUqHttQysqnL/0/sB1BLAQIUAxQAAAAAAPMbH0texjIMJwAAACcAAAAIAAAAAAAAAAAAAACkgQAAAABtaW1ldHlwZVBLAQIUAxQAAAAIAN1NElHql+ZnkgAAADEBAAAVAAAAAAAAAAAAAACkgU0AAABNRVRBLUlORi9tYW5pZmVzdC54bWxQSwECFAMUAAAACACQThJRWmJBaH8AAADjAAAACwAAAAAAAAAAAAAApIESAQAAY29udGVudC54bWxQSwUGAAAAAAMAAwCyAAAAugEAAAAA'
 	};
 
+	// https://docs.nextcloud.com/server/latest/developer_manual//client_apis/WebDAV/basic.html
+	// https://web.archive.org/web/20250829204116/https://doc.owncloud.com/desktop/next/appendices/architecture.html#server-side-permissions
+	const PERM_SHARED = 'S'; // file or folder is shared
+	const PERM_SHARE = 'R'; // can be shared (includes re-share)
+	const PERM_MOUNTED = 'M'; // is mounted (like on Dropbox, Samba, etc.)
+	const PERM_WRITE = 'W'; // can write to file
+	const PERM_CREATE = 'C'; // can create file in folder
+	const PERM_MKDIR = 'K'; // can create folder (mkdir)
+	const PERM_DELETE = 'D';
+	const PERM_RENAME = 'N';
+	const PERM_MOVE = 'V';
+	const PERM_READ = 'G';
+
 	const _ = key => typeof lang_strings != 'undefined' && key in lang_strings ? lang_strings[key] : key;
 
 	const download_button = `<a download title="${_('Download')}" class="btn">${_('Download')}</a>`;
@@ -246,7 +259,7 @@ const WebDAVNavigator = async function (url, options) {
 
 		xml.querySelectorAll('response').forEach((node) => {
 			var path = node.querySelector('href').textContent;
-			var item_uri = normalizeURL(path);
+			var uri = normalizeURL(path);
 			var props = null;
 
 			node.querySelectorAll('propstat').forEach(propstat => {
@@ -257,24 +270,44 @@ const WebDAVNavigator = async function (url, options) {
 
 			// This item didn't return any properties, everything is 404?
 			if (!props) {
-				console.error('Cannot find properties for: ' + item_uri);
+				console.error('Cannot find properties for: ' + uri);
 				return;
 			}
 
-			var name = item_uri.replace(/\/$/, '').split('/').pop();
+			var name = uri.replace(/\/$/, '').split('/').pop();
 			name = decodeURIComponent(name);
 			var is_dir = node.querySelector('resourcetype collection') ? true : false;
 
-			files[item_uri === url ? '.' : name] = {
-				'uri': item_uri,
-				'path': item_uri.substring(base_url.length),
-				'name': name,
-				'size': !is_dir && (prop = node.querySelector('getcontentlength')) ? parseInt(prop.textContent, 10) : null,
-				'mime': !is_dir && (prop = node.querySelector('getcontenttype')) ? prop.textContent : null,
-				'modified': (prop = node.querySelector('getlastmodified')) ? new Date(prop.textContent) : null,
-				'is_dir': is_dir,
-				'permissions': (prop = node.querySelector('permissions')) ? prop.textContent : null,
-			};
+			// Assume we can do anything if no permissions are supplied
+			var permissions = 'WCKDNVG';
+
+			if (prop = node.querySelector('permissions')) {
+				permissions = prop.textContent;
+			}
+
+			permissions = permissions.split('');
+
+			var modified = null;
+
+			if (prop = node.querySelector('getlastmodified')) {
+				modified = new Date(prop.textContent);
+			}
+
+			var mime = null;
+
+			if (!is_dir && (prop = node.querySelector('getcontenttype'))) {
+				mime = prop.textContent;
+			}
+
+			var size = null;
+
+			if ((prop = node.querySelector('getcontentlength')) && prop.textContent !== '') {
+				size = parseInt(prop.textContent, 10);
+			}
+
+			var path = uri.substring(base_url.length);
+
+			files[uri === url ? '.' : name] = {uri, path, name, size, mime, modified, is_dir, permissions};
 		});
 
 		return files;
@@ -334,7 +367,7 @@ const WebDAVNavigator = async function (url, options) {
 
 			document.title = title;
 
-			browser.setRootPermissions(browser.root.permissions);
+			browser.setRootPermissions(browser.current.permissions);
 			browser.createFilesList();
 
 			changeURL(browser.url, push_history);
@@ -375,7 +408,8 @@ const WebDAVNavigator = async function (url, options) {
 
 		items.forEach(item => {
 			// Don't include files we cannot read
-			if (item.permissions !== null && item.permissions.indexOf('G') == -1) {
+			if (item.permissions !== null
+				&& !item.permissions.includes(PERM_READ)) {
 				console.error('OC permissions deny read access to this file: ' + item.name, 'Permissions: ', item.permissions);
 				return;
 			}
@@ -412,21 +446,27 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	browser.setRowPermissions = (tr, file) => {
-		// Assume we can do anything if no permissions are supplied
-		// https://web.archive.org/web/20250829204116/https://doc.owncloud.com/desktop/next/appendices/architecture.html#server-side-permissions
-		var p = (file.permissions || 'WCKDNV').split('');
+		var p = file.permissions;
 		var hideButton = a => document.querySelector('.buttons .' + a).style.display = 'none';
 
-		if (!p.contains('V')) {
+		if (!p.includes(PERM_RENAME)) {
 			hideButton('rename');
 		}
 
-		if (!permissions.contains('D')) {
+		if (!p.includes(PERM_DELETE)) {
 			hideButton('delete');
 		}
 
-		if (file.is_dir || !permissions.contains('W')) {
+		if (file.is_dir || !p.includes(PERM_WRITE)) {
 			hideButton('edit');
+		}
+
+		if (!p.includes(PERM_SHARE)) {
+			hideButton('share');
+		}
+
+		if (!p.includes(PERM_SHARED)) {
+			hideButton('shared');
 		}
 
 		// if (mime.match(/^text\/|application\/x-empty/))
@@ -508,10 +548,10 @@ const WebDAVNavigator = async function (url, options) {
 		if (allow_preview) {
 			$$('th a').onclick = () => { browser.openPreview(file); return false; };
 		}
-		else if (permissions.contains('W')
+		else if (permissions.includes(PERM_WRITE)
 			&& (file.mime.match(/^text\/|application\/x-empty/)
 				|| file.name.match(/\.(md|txt)$/i)
-				|| edit_url = wopi.getEditURL(file.url, file.mime))) {
+				|| (edit_url = wopi.getEditURL(file.url, file.mime)))) {
 			if (edit_url)  {
 				var action = () => { wopi.open(file.url, edit_url); return false; };
 				$$('.icon').classList.add('document');
@@ -921,7 +961,7 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	browser.setRootPermissions = (perms) => {
-		css.toggle('toolbar .create', !perms || perms.indexOf('C') != -1 || perms.indexOf('K') != -1);
+		css.toggle('toolbar .create', perms.includes(PERM_CREATE) || perms.includes(PERM_MKDIR));
 	};
 
 	const reqXML = (method, url, body, headers) => {
@@ -1228,6 +1268,7 @@ const WebDAVNavigator = async function (url, options) {
 		await wopi.init(wopi.discovery_url);
 	}
 
+	browser.init();
 	browser.open(current_url);
 
 	window.addEventListener('paste', (e) => {
