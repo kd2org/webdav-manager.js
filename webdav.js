@@ -52,6 +52,7 @@ const WebDAVNavigator = async function (url, options) {
 				<input type="button" class="icon delete" value="${_('Delete')}" />
 				<input type="button" class="icon cut" value="${_('Cut')}" />
 				<input type="button" class="icon copy" value="${_('Copy')}" />
+				<span class="count"></span>
 			</div>
 			<div class="paste">
 			</div>
@@ -356,7 +357,11 @@ const WebDAVNavigator = async function (url, options) {
 
 		// Check all by checking box in table header
 		document.querySelector('thead td.check input').onchange = (e) => {
-			document.querySelectorAll('tbody td.check input').forEach(i => i.checked = e.target.checked);
+			document.querySelectorAll('tbody td.check input').forEach(i => {
+				if (e.target.checked !== i.checked) {
+					i.click();
+				}
+			});
 		};
 	};
 
@@ -452,6 +457,8 @@ const WebDAVNavigator = async function (url, options) {
 
 	browser.updateSelected = () => {
 		css.show('.toolbar .selected .delete, .toolbar .selected .copy, .toolbar .selected .cut');
+		var file_count = 0;
+		var dir_count = 0;
 
 		for (var uri_name in browser.files) {
 			if (!browser.files.hasOwnProperty(uri_name)) {
@@ -459,6 +466,13 @@ const WebDAVNavigator = async function (url, options) {
 			}
 
 			let file = browser.files[uri_name];
+
+			if (!file.selected) {
+				continue;
+			}
+
+			dir_count += file.is_dir ? 1 : 0;
+			file_count += !file.is_dir ? 1 : 0;
 
 			if (!file.permissions.includes(PERM_DELETE)) {
 				css.hide('.toolbar .selected .delete');
@@ -471,6 +485,27 @@ const WebDAVNavigator = async function (url, options) {
 			if (!browser.root.permissions.includes(PERM_CREATE)) {
 				css.hide('.toolbar .selected .copy');
 			}
+		}
+
+		// Hide selected files menu
+		if (!file_count && !dir_count) {
+			css.hide('.toolbar .selected');
+			return;
+		}
+
+		css.show('.toolbar .selected');
+
+		var count = $('.toolbar .selected .count');
+		count.innerHTML = '';
+
+		if (dir_count) {
+			let msg = _('%d directories').replace('%d', dir_count);
+			count.innerHTML += '<span class="directories">' + msg + '</span>';
+		}
+
+		if (file_count) {
+			let msg = _('%d files').replace('%d', file_count);
+			count.innerHTML += '<span class="files">' + msg + '</span>';
 		}
 	};
 
@@ -524,6 +559,12 @@ const WebDAVNavigator = async function (url, options) {
 		var permissions = tr.getAttribute('data-permissions');
 		var size = tr.getAttribute('data-size');
 
+		var checkbox = $$('input[type=checkbox]');
+		checkbox.onchange = () => {
+			browser.files[url_name].selected = checkbox.checked;
+			browser.updateSelected();
+		};
+
 		if (file.is_dir) {
 			$$('a').onclick = () => {
 				browser.open(file.url, true);
@@ -532,12 +573,6 @@ const WebDAVNavigator = async function (url, options) {
 
 			return;
 		}
-
-		var checkbox = $$('input[type=checkbox]');
-		checkbox.onchange = () => {
-			browser.files[url_name].selected = checkbox.checked;
-			browser.updateSelected();
-		};
 
 		$$('.buttons .rename').onclick = () => {
 			openDialog(rename_dialog);
