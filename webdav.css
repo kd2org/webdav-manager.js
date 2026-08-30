@@ -354,7 +354,10 @@ dialog form div {
 	position: relative;
 }
 
-.toolbar .selected {
+.toolbar .selection, .toolbar .paste {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -363,26 +366,22 @@ dialog form div {
 	z-index: 100;
 	box-shadow: 0px 0px 5px var(--active-color);
 	padding: .2em;
+	display: none;
 }
 
-.toolbar .selected .count {
+.toolbar .selection .cancel, .toolbar .paste .cancel {
+	margin-left: auto;
+}
+
+.toolbar .selection .count, .toolbar .paste .count {
 	display: flex;
-	flex-direction: column;
-	font-size: .8em;
-	justify-content: center;
-	align-items: start;
+	flex-direction: row;
+	font-size: .9em;
+	justify-content: start;
+	align-items: center;
+	gap: .5em;
 	margin-left: .5em;
 	color: #666;
-}
-
-.toolbar .selected .count span {
-	line-height: .9em;
-}
-
-.toolbar .selected, .toolbar .paste {
-	margin-right: auto;
-	display: none;
-	flex-direction: row;
 }
 
 .toolbar .paste div {
@@ -397,10 +396,6 @@ dialog form div {
 	display: block;
 	padding: .5em;
 	color: #666;
-}
-
-body:has(tbody .check input:checked) .toolbar .selected {
-	display: flex;
 }
 
 .toolbar input.icon {

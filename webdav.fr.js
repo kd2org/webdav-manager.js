@@ -36,6 +36,7 @@
 	'Name': 'Nom',
 	'Date': 'Date',
 	'Size': 'Taille',
+	'Selected:': 'Sélectionné :',
 	'%d files': '%d fichiers',
 	'%d directories': '%d répertoires',
 };

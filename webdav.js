@@ -47,12 +47,13 @@ const WebDAVNavigator = async function (url, options) {
 		<head><title></title><link rel="stylesheet" type="text/css" href="${css_url}" /></head>
 		<body><main>
 		<div class="toolbar">
-			<div class="selected">
+			<div class="selection">
 				<input type="button" class="icon download" value="${_('Download')}" />
 				<input type="button" class="icon delete" value="${_('Delete')}" />
 				<input type="button" class="icon cut" value="${_('Cut')}" />
 				<input type="button" class="icon copy" value="${_('Copy')}" />
 				<span class="count"></span>
+				<input type="button" value="${_('Cancel')}" class="icon cancel" />
 			</div>
 			<div class="paste">
 			</div>
@@ -339,9 +340,9 @@ const WebDAVNavigator = async function (url, options) {
 		document.querySelector('html').innerHTML = html_tpl;
 		browser.createToolbar();
 
-		//var column = document.querySelector('thead td[data-sort="' + browser.sort_order + '"]').className += ' selected ' + (browser.sort_order_desc ? 'desc' : 'asc');
 		// Create actions for sorting buttons
 		document.querySelectorAll('thead td[data-sort] button').forEach(elm => elm.onclick = (e) => {
+			$('thead td[data-sort="' + browser.sort_order + '"]').classList.remove('selected', 'desc', 'asc');
 			var new_sort_order = e.target.parentNode.dataset.sort;
 
 			if (browser.sort_order == new_sort_order) {
@@ -368,6 +369,9 @@ const WebDAVNavigator = async function (url, options) {
 	browser.open = function (url, push_history, focus_file) {
 		closeDialog();
 		browser.url = normalizeURL(url);
+		// Show order in correct column
+		$('thead td[data-sort="' + browser.sort_order + '"]').className += ' selected ' + (browser.sort_order_desc ? 'desc' : 'asc');
+
 		dav.list(url).then(files => {
 			browser.root = files['.'];
 			delete files['.'];
@@ -455,8 +459,14 @@ const WebDAVNavigator = async function (url, options) {
 		document.querySelectorAll('table tbody tr').forEach(browser.createRowActions);
 	};
 
-	browser.updateSelected = () => {
-		css.show('.toolbar .selected .delete, .toolbar .selected .copy, .toolbar .selected .cut');
+	browser.cancelSelection = () => {
+		css.hide('.toolbar .selection');
+		Object.values(browser.files).forEach(f => f.selected = false);
+		css.all('table input[type=checkbox]:checked').forEach(e => e.checked = false);
+	};
+
+	browser.updateSelection = () => {
+		css.show('.toolbar .selection .delete, .toolbar .selection .copy, .toolbar .selection .cut');
 		var file_count = 0;
 		var dir_count = 0;
 
@@ -475,28 +485,28 @@ const WebDAVNavigator = async function (url, options) {
 			file_count += !file.is_dir ? 1 : 0;
 
 			if (!file.permissions.includes(PERM_DELETE)) {
-				css.hide('.toolbar .selected .delete');
+				css.hide('.toolbar .selection .delete');
 			}
 
 			if (!file.permissions.includes(PERM_MOVE)) {
-				css.hide('.toolbar .selected .cut');
+				css.hide('.toolbar .selection .cut');
 			}
 
 			if (!browser.root.permissions.includes(PERM_CREATE)) {
-				css.hide('.toolbar .selected .copy');
+				css.hide('.toolbar .selection .copy');
 			}
 		}
 
 		// Hide selected files menu
 		if (!file_count && !dir_count) {
-			css.hide('.toolbar .selected');
+			css.hide('.toolbar .selection');
 			return;
 		}
 
-		css.show('.toolbar .selected');
+		css.show('.toolbar .selection');
 
-		var count = $('.toolbar .selected .count');
-		count.innerHTML = '';
+		var count = $('.toolbar .selection .count');
+		count.innerHTML = '<span class="prefix">' + _('Selected:') + '</span>';
 
 		if (dir_count) {
 			let msg = _('%d directories').replace('%d', dir_count);
@@ -562,7 +572,7 @@ const WebDAVNavigator = async function (url, options) {
 		var checkbox = $$('input[type=checkbox]');
 		checkbox.onchange = () => {
 			browser.files[url_name].selected = checkbox.checked;
-			browser.updateSelected();
+			browser.updateSelection();
 		};
 
 		if (file.is_dir) {
@@ -968,10 +978,11 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	browser.createToolbar = () => {
-		$('.toolbar .download').onclick = browser.downloadSelectedFiles;
-		$('.toolbar .copy').onclick = () => browser.createPasteSelection('copy');
-		$('.toolbar .cut').onclick = () => browser.createPasteSelection('move');
-		$('.toolbar .delete').onclick = browser.deleteSelectedFiles;
+		$('.toolbar .selection .download').onclick = browser.downloadSelectedFiles;
+		$('.toolbar .selection .copy').onclick = () => browser.createPasteSelection('copy');
+		$('.toolbar .selection .cut').onclick = () => browser.createPasteSelection('move');
+		$('.toolbar .selection .delete').onclick = browser.deleteSelectedFiles;
+		$('.toolbar .selection .cancel').onclick = browser.cancelSelection;
 
 		// Hide stuff that can only be used if permissions allow
 		css.hide('.toolbar .create, .toolbar .copy, .toolbar .cut, .toolbar .delete, .toolbar .menu, .toolbar .menu .wopi');
