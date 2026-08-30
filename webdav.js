@@ -1099,8 +1099,8 @@ const WebDAVNavigator = async function (url, options) {
 				line = line.replace(/==(\b.+?\b)==/g, (_, text) => '<mark>' + text + '</mark>');
 				line = line.replace(/~~(\b.+?\b)~~/g, (_, text) => '<s>' + text + '</s>');
 				line = line.replace(/`(\b.+?\b)`/g, (_, text) => '<code>' + text + '</code>');
-				line = line.replace(/\[ +\](?=\s|$)/gm, '<span class="checkbox">☐</span>');
-				line = line.replace(/\[x\](?=\s|$)/gmi, '<span class="checkbox">☑</span>');
+				line = line.replace(/\[ +\](?=\s|$)/gm, '<span class="unchecked">☐</span>');
+				line = line.replace(/\[x\](?=\s|$)/gmi, '<span class="checked">☑</span>');
 				out += line;
 			}
 
