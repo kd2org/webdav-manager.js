@@ -137,9 +137,9 @@ const WebDAVNavigator = async function (url, options) {
 
 	const basename = path => path.split('/').pop();
 	const dirname = path => {
-		var parts = path.split('/');
+		var parts = path.replace(/\/$/, '').split('/');
 		parts.pop();
-		return parts.join('/');
+		return parts.join('/') + '/';
 	};
 
 	const $ = (a) => document.querySelector(a);
@@ -360,7 +360,7 @@ const WebDAVNavigator = async function (url, options) {
 		};
 	};
 
-	browser.open = function (url, push_history) {
+	browser.open = function (url, push_history, focus_file) {
 		closeDialog();
 		browser.url = normalizeURL(url);
 		dav.list(url).then(files => {
@@ -380,6 +380,10 @@ const WebDAVNavigator = async function (url, options) {
 			browser.createFilesList();
 
 			changeURL(browser.url, push_history);
+
+			if (focus_file) {
+				browser.focusFile(focus_file);
+			}
 		});
 	};
 
@@ -446,6 +450,30 @@ const WebDAVNavigator = async function (url, options) {
 		document.querySelectorAll('table tbody tr').forEach(browser.createRowActions);
 	};
 
+	browser.updateSelected = () => {
+		css.show('.toolbar .selected .delete, .toolbar .selected .copy, .toolbar .selected .cut');
+
+		for (var uri_name in browser.files) {
+			if (!browser.files.hasOwnProperty(uri_name)) {
+				continue;
+			}
+
+			let file = browser.files[uri_name];
+
+			if (!file.permissions.includes(PERM_DELETE)) {
+				css.hide('.toolbar .selected .delete');
+			}
+
+			if (!file.permissions.includes(PERM_MOVE)) {
+				css.hide('.toolbar .selected .cut');
+			}
+
+			if (!browser.root.permissions.includes(PERM_CREATE)) {
+				css.hide('.toolbar .selected .copy');
+			}
+		}
+	};
+
 	browser.setRowPermissions = (tr, file) => {
 		var p = file.permissions;
 		var hideButton = a => document.querySelector('.buttons .' + a).style.display = 'none';
@@ -477,7 +505,7 @@ const WebDAVNavigator = async function (url, options) {
 		// Ignore parent row
 		if (tr.classList.contains('parent')) {
 			tr.querySelector('a').onclick = () => {
-				browser.open(dirname(file_url));
+				browser.open(dirname(browser.root.url));
 				return false;
 			};
 			return;
@@ -485,13 +513,8 @@ const WebDAVNavigator = async function (url, options) {
 
 		var $$ = (a) => tr.querySelector(a);
 		var url = $$('a').href;
-		var url_name = decodeURIComponent(basename(url.trim('/')));
+		var url_name = decodeURIComponent(basename(url.replace(/\/$/, '')));
 		var file = browser.files[url_name];
-
-		if (!file) {
-			console.log(tr, url, url_name, browser.files);
-			return;
-		}
 
 		browser.setRowPermissions(tr, file);
 
@@ -503,12 +526,18 @@ const WebDAVNavigator = async function (url, options) {
 
 		if (file.is_dir) {
 			$$('a').onclick = () => {
-				browser.open(uri, true);
+				browser.open(file.url, true);
 				return false;
 			};
 
 			return;
 		}
+
+		var checkbox = $$('input[type=checkbox]');
+		checkbox.onchange = () => {
+			browser.files[url_name].selected = checkbox.checked;
+			browser.updateSelected();
+		};
 
 		$$('.buttons .rename').onclick = () => {
 			openDialog(rename_dialog);
@@ -518,24 +547,30 @@ const WebDAVNavigator = async function (url, options) {
 			t.selectionStart = 0;
 			t.selectionEnd = file.name.lastIndexOf('.');
 			document.forms[0].onsubmit = () => {
-				var name = t.value;
+				var name = t.value.trim();
 
 				if (!name) return false;
 
-				return reqMove(uri, current_url + encodeURIComponent(name));
+				var new_url = browser.root.url + encodeURIComponent(name);
+
+				dav.copymove('MOVE', file.url, new_url, false);
+				browser.reload(name);
+				return false;
 			};
 		};
 
 		$$('.buttons .delete').onclick = (e) => {
 			openDialog(delete_dialog);
 			document.forms[0].onsubmit = () => {
-				return reqAndReload('DELETE', file_url);
+				dav.send('DELETE', file.url);
+				browser.reload(name);
+				return false;
 			};
 		};
 
 		if (!file.is_dir) {
-			$$('.buttons .download').href = file.url;
-			$$('.buttons .download').download = file.name;
+			$$('.buttons [download]').href = file.url;
+			$$('.buttons [download]').download = file.name;
 		}
 
 		var allow_preview = false;
@@ -717,9 +752,24 @@ const WebDAVNavigator = async function (url, options) {
 		}));
 	};
 
-	browser.reload = function () {
+	browser.reload = function (focus_file) {
+		closeDialog();
 		stopLoading();
-		browser.open(browser.url, false);
+		browser.open(browser.url, false, focus_file);
+	};
+
+	browser.focusFile = (name) => {
+		css.all('tr[data-name]').forEach(tr => {
+			tr.classList.remove('focus');
+
+			if (tr.dataset.name == name) {
+				tr.classList.add('focus');
+
+				if (!css.isVisible(tr)) {
+					tr.scrollIntoView({block: 'center', behavior: 'smooth'});
+				}
+			}
+		});
 	};
 
 	browser.getFreeFilename = function (filename) {
@@ -876,12 +926,17 @@ const WebDAVNavigator = async function (url, options) {
 	css.show = (selector) => css.all(selector).forEach(e => e.style.display = 'inherit');
 	css.toggle = (selector, show) => show ? css.show(selector) : css.hide(selector);
 	css.onclick = (selector, callback) => css.all(selector).forEach(el => el.onclick = (ev) => callback(ev, el));
+	css.isVisible = (elm) => {
+		var rect = elm.getBoundingClientRect();
+		var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+		return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
+	};
 
 	browser.createToolbar = () => {
 		$('.toolbar .download').onclick = browser.downloadSelectedFiles;
 		$('.toolbar .copy').onclick = () => browser.createPasteSelection('copy');
 		$('.toolbar .cut').onclick = () => browser.createPasteSelection('move');
-		$('.toolbar .delete').onclick = () => browser.deleteSelectedFiles;
+		$('.toolbar .delete').onclick = browser.deleteSelectedFiles;
 
 		// Hide stuff that can only be used if permissions allow
 		css.hide('.toolbar .create, .toolbar .copy, .toolbar .cut, .toolbar .delete, .toolbar .menu, .toolbar .menu .wopi');
@@ -927,20 +982,22 @@ const WebDAVNavigator = async function (url, options) {
 		}
 
 		$('.mkdir').onclick = () => {
+			toggle_menu();
 			openDialog(mkdir_dialog);
 			document.forms[0].onsubmit = () => {
 				var name = $('input[name=mkdir]').value;
 
 				if (!name) return false;
 
-				name = encodeURIComponent(name);
+				var new_url = current_url + encodeURIComponent(name);
 
-				req('MKCOL', current_url + name).then(() => browser.open(current_url + name + '/', true));
+				dav.send('MKCOL', new_url).then(() => browser.open(new_url + '/', true));
 				return false;
 			};
 		};
 
 		$('.mktext').onclick = () => {
+			toggle_menu();
 			openDialog(mkfile_dialog);
 			var t = $('input[name=mkfile]');
 			t.value = '.md';
@@ -951,9 +1008,9 @@ const WebDAVNavigator = async function (url, options) {
 
 				if (!name) return false;
 
-				name = encodeURIComponent(name);
-
-				return reqAndReload('PUT', current_url + name, '');
+				dav.send('PUT', current_url + encodeURIComponent(name), '');
+				browser.reload(name);
+				return false;
 			};
 		};
 
@@ -968,7 +1025,7 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	browser.setRootPermissions = (perms) => {
-		css.toggle('toolbar .create', perms.includes(PERM_CREATE) || perms.includes(PERM_MKDIR));
+		css.toggle('.toolbar .create', perms.includes(PERM_CREATE) || perms.includes(PERM_MKDIR));
 	};
 
 	const reqXML = (method, url, body, headers) => {

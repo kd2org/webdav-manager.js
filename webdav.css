@@ -160,11 +160,17 @@ td.buttons {
 
 td.buttons div {
 	display: flex;
-	flex-direction: row-reverse;
+	justify-content: end;
 }
 
 tbody tr:nth-child(even) {
 	background: var(--g1-color);
+}
+
+tbody tr.focus {
+	box-shadow: 0px 0px 10px var(--active-color);
+	background: hsl(from var(--active-color) h s 90%);
+	border-color: var(--active-color);
 }
 
 tbody th .icon {
@@ -351,6 +357,7 @@ dialog form div {
 .toolbar .selected, .toolbar .paste {
 	margin-right: auto;
 	display: none;
+	flex-direction: row;
 }
 
 .toolbar .paste div {
@@ -368,10 +375,10 @@ dialog form div {
 }
 
 body:has(tbody .check input:checked) .toolbar .selected {
-	display: block;
+	display: flex;
 }
 
-.toolbar input {
+.toolbar input.icon {
 	overflow: visible;
 	text-indent: 0;
 	width: auto;
@@ -392,6 +399,11 @@ body:has(tbody .check input:checked) .toolbar .selected {
 	display: flex;
 	flex-direction: column;
 	box-shadow: 0px 0px 10px var(--g3-color);
+}
+
+.menu .wopi {
+	display: flex;
+	flex-direction: column;
 }
 
 .menu h5 {
