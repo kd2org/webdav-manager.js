@@ -642,22 +642,13 @@ const WebDAVNavigator = async function (url, options) {
 			$$('.buttons [download]').download = file.name;
 		}
 
-		var allow_preview = false;
+		var edit_url, view_url;
+		$$('.buttons .edit').style.display = 'none';
 
 		// Don't preview PDF in mobile, it doesn't work
 		if ((mime == 'application/pdf' || file.name.match(/\.pdf$/i))
 			&& window.navigator.userAgent.match(/Mobi|Tablet|Android|iPad|iPhone/)) {
 			allow_preview = false;
-		}
-		else if (mime.match(PREVIEW_TYPES)
-			|| file.name.match(PREVIEW_EXTENSIONS)) {
-			allow_preview = true;
-		}
-
-		var edit_url, view_url;
-
-		if (allow_preview) {
-			$$('th a').onclick = () => { browser.openPreview(file); return false; };
 		}
 		else if (permissions.includes(PERM_WRITE)
 			&& (file.mime.match(/^text\/|application\/x-empty/)
@@ -668,9 +659,10 @@ const WebDAVNavigator = async function (url, options) {
 				$$('.icon').classList.add('document');
 			}
 			else {
-				var action = () => { browser.editFile(file); return false; };
+				var action = () => { browser.editTextFile(file); return false; };
 			}
 
+			$$('.buttons .edit').style.display = null;
 			$$('.buttons .edit').onclick = action;
 			$$('th a').onclick = action;
 		}
@@ -682,6 +674,10 @@ const WebDAVNavigator = async function (url, options) {
 		else if (!file.is_dir) {
 			$$('th a').download = file.name;
 			$$('th a').href = file.url;
+		}
+		else if (mime.match(PREVIEW_TYPES)
+			|| file.name.match(PREVIEW_EXTENSIONS)) {
+			$$('th a').onclick = () => { browser.openPreview(file); return false; };
 		}
 	};
 
@@ -965,17 +961,189 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	editor.markdownToHTML = (text) => {
-		if ('marked' in window) {
-			return marked.parse(text);
-		}
-
 		text = text.replace(/\r\n|\r/g, "\n");
 		text = html(text);
-		text = text.replace(/^(#+)\s*(.+)$/mg, (_, h, t) => '<h' + h.length + '>' + t + '</h' + h.length + '>');
-		text = text.replace(/\n{2,}/g, '<p>');
-		text = text.replace(/\[(.*)\]\((.*)\)/g, (_, l, h) => '<a href="' + h + '">' + (l || h) + '</a>');
-		return text;
+
+		var lines = text.split("\n");
+		var out = '';
+		var in_code = false;
+		var in_quote = false;
+		var in_table = false;
+		var ul_length = null;
+		var ul_level = 0;
+		var ol = false;
+
+		for (var i = 0; i < lines.length; i++) {
+			var line = lines[i].trimEnd();
+
+			if (line.match(/^\s*```\w*\s*/)) {
+				if (in_code) {
+					out += '</code></pre>';
+					in_code = false;
+				}
+				else {
+					out += '<pre><code>';
+					in_code = true;
+				}
+				continue;
+			}
+			else if (in_code) {
+				out += line + "\n";
+				continue;
+			}
+			else if (line.match(/^\|[\|\s-:]+\|$/)) {
+				// Ignore table separator
+				continue;
+			}
+			else if (line.match(/^\|/)) {
+				line = line.replace(/^\||\|$/g, '');
+				line = line.replace(/\|/g, '</td><td>');
+
+				if (!in_table) {
+					out += '<table>';
+					in_table = true;
+				}
+
+				out += '<tr><td>' + line + '</td></tr>';
+				continue;
+			}
+			else if (in_table) {
+				out += '</table>';
+				in_table = false;
+				continue;
+			}
+			else if (match = line.match(/^#+/)) {
+				var l = match[0].length;
+				out += '<h' + l + '>' + line.substr(l).trim() + '</h' + l + '>';
+				continue;
+			}
+			else if (line.match(/^(?:---+|\*{3,}|___+)$/)
+				&& (i === 0 || !lines[i-1].trim().length)) {
+				out += '<hr />';
+				continue;
+			}
+			else if (match = line.match(/^(&gt;\s*)+/)) {
+				line = line.substr(match[0].length).trim();
+
+				if (!in_quote) {
+					out += '<blockquote>';
+					in_quote = true;
+				}
+			}
+			else if (in_quote) {
+				out += '</blockquote>';
+				in_quote = false;
+			}
+
+			if (match = line.match(/^(\s*)[*-]\s+/)) {
+				var length = match[1].length;
+
+				if (ul_level === 0 || length > ul_length) {
+					out += '<ul><li>';
+					ul_length = length;
+					ul_level++;
+				}
+				else if (length < ul_length) {
+					out += '</li></ul><li>';
+					ul_length = length;
+					ul_level--;
+				}
+				else {
+					out += '</li>';
+					out += '<li>';
+				}
+
+				line = line.substr(match[0].length).trim();
+			}
+			else if (ul_level) {
+				while (ul_level) {
+					out += '</ul>';
+					ul_level--;
+				}
+
+				ul_length = null;
+
+				if (line === '') {
+					continue;
+				}
+			}
+			else if (match = line.match(/^\d+\.\s+/)) {
+				if (!ol) {
+					out += '<ol>';
+					ol = true;
+				}
+
+				line = line.substr(match[0].length).trim();
+				out += '<li>';
+			}
+			else if (ol) {
+				out += '</ol>';
+				ol = false;
+
+				if (line === '') {
+					continue;
+				}
+			}
+
+			if (line === '') {
+				out += '<p>';
+			}
+			else {
+				line = line.replace(/!\[(.*?)\]\((.+?)\)/g, (_, alt, url) => '<img src="' + url + '" alt="' + alt + '" />');
+				line = line.replace(/\[(.*?)\]\((.+?)\)/g, (_, l, h) => '<a href="' + h + '">' + (l || h) + '</a>');
+				line = line.replace(/&lt;(https?:\/\/.+?)&gt;/g, (_, url) => '<a href="' + url + '">' + url + '</a>');
+				line = line.replace(/(?<=^|\s)(https?:\/\/.+?)(?=$|\s)/gm, (_, url) => '<a href="' + url + '">' + url + '</a>');
+				line = line.replace(/\*{3}(.+?)\*{3}/g, (_, text) => '<strong><em>' + text + '</em></strong>');
+				line = line.replace(/\*{2}(.+?)\*{2}/g, (_, text) => '<strong>' + text + '</strong>');
+				line = line.replace(/\*{1}(.+?)\*{1}/g, (_, text) => '<em>' + text + '</em>');
+				line = line.replace(/==(\b.+?\b)==/g, (_, text) => '<mark>' + text + '</mark>');
+				line = line.replace(/~~(\b.+?\b)~~/g, (_, text) => '<s>' + text + '</s>');
+				line = line.replace(/`(\b.+?\b)`/g, (_, text) => '<code>' + text + '</code>');
+				line = line.replace(/\[ +\](?=\s|$)/gm, '<span class="checkbox">☐</span>');
+				line = line.replace(/\[x\](?=\s|$)/gmi, '<span class="checkbox">☑</span>');
+				out += line;
+			}
+
+			if (!ol && !ul_level && line !== '') {
+				out += "<br />";
+			}
+		}
+
+		return out;
 	};
+
+	var js = {};
+	js.loaded = {};
+	js.load = (url, css) => {
+		return new Promise((resolve) => {
+			if (url in js.loaded) {
+				resolve(url);
+				return;
+			}
+
+			var script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.src = url;
+			script.onload = () => resolve(url)
+			document.head.appendChild(script);
+
+			if (css) {
+				var l = document.createElement('link');
+				l.type = 'text/css';
+				l.rel = 'stylesheet';
+				l.href = css;
+				document.head.appendChild(l);
+			}
+		});
+	};
+
+	js.prism = (resolve) => js.load('./prism_editor.js', './prism_editor.css').then(url => {
+		if (!(url in js.loaded)) {
+
+		}
+
+		resolve();
+	});
 
 	var css = {};
 	css.all = (selector) => document.querySelectorAll(selector);
