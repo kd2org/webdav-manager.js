@@ -644,27 +644,38 @@ const WebDAVNavigator = async function (url, options) {
 
 		var edit_url, view_url;
 		$$('.buttons .edit').style.display = 'none';
+		var allow_preview = false;
 
 		// Don't preview PDF in mobile, it doesn't work
 		if ((mime == 'application/pdf' || file.name.match(/\.pdf$/i))
 			&& window.navigator.userAgent.match(/Mobi|Tablet|Android|iPad|iPhone/)) {
 			allow_preview = false;
 		}
-		else if (permissions.includes(PERM_WRITE)
+		else if (mime.match(PREVIEW_TYPES)
+			|| file.name.match(PREVIEW_EXTENSIONS)) {
+			allow_preview = true;
+		}
+
+		if (permissions.includes(PERM_WRITE)
 			&& (file.mime.match(/^text\/|application\/x-empty/)
 				|| file.name.match(/\.(md|txt)$/i)
 				|| (edit_url = wopi.getEditURL(file.url, file.mime)))) {
 			if (edit_url)  {
 				var action = () => { wopi.open(file.url, edit_url); return false; };
 				$$('.icon').classList.add('document');
+				allow_preview = false;
 			}
 			else {
+				allow_preview = !file.name.match(/\.md$/);
 				var action = () => { browser.editTextFile(file); return false; };
 			}
 
 			$$('.buttons .edit').style.display = null;
 			$$('.buttons .edit').onclick = action;
-			$$('th a').onclick = action;
+
+			if (!allow_preview) {
+				$$('th a').onclick = action;
+			}
 		}
 		// Open WOPI viewser
 		else if (view_url = wopi.getViewURL(file.url, mime)) {
@@ -675,8 +686,9 @@ const WebDAVNavigator = async function (url, options) {
 			$$('th a').download = file.name;
 			$$('th a').href = file.url;
 		}
-		else if (mime.match(PREVIEW_TYPES)
-			|| file.name.match(PREVIEW_EXTENSIONS)) {
+
+
+		if (allow_preview) {
 			$$('th a').onclick = () => { browser.openPreview(file); return false; };
 		}
 	};
@@ -1518,8 +1530,11 @@ const WebDAVNavigator = async function (url, options) {
 		else if (type.match(/^video\//)) {
 			openDialog(`<video controls="true" autoplay="true" src="${url}" />`, false);
 		}
-		else {
+		else if (type.match(/pdf/)) {
 			openDialog(`<iframe src="${url}" />`, false);
+		}
+		else {
+			openDialog(`<iframe sandbox="" src="${url}" />`, false);
 		}
 
 		$('dialog').className = 'preview';

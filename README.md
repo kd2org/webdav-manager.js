@@ -10,30 +10,33 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 
 ## Features
 
-* Order files by name, date, or size
-* Create new directories
-* Create and edit text file
-* Delete files and directories
-* Rename and move files and directories
-* Upload files directly from browser
-* Upload files using copy and paste!
-* Upload files with drag and drop
-* Preview of images, text, videos, audio, MarkDown and PDF
-* [MarkDown live preview when editing MarkDown files](scr_markdown.png)
-* Support for viewing/editing document files via WOPI clients (OnlyOffice, Collabora Online, MS Office)
-* Download files individually
-* Download all the files of a directory at once
-* Localization support
+* Localization support (currently: French, English)
 * Responsive: works with mobiles and desktop browsers
 * Support for light and dark theme
-* Only 8KB gzipped!
+* Only 20KB gzipped! (JS+CSS)
 * Single file, self-contained, no dependencies, no silly NPM stuff!
 
-### Planned features
+File management:
 
-* Select multiple items to move/delete
-* Upload progress status for large files
-* [Resumable upload via TUS](https://tus.io/protocols/resumable-upload.html) to upload large files
+* Order files by name, date, or size
+* Select and cut/copy/paste/move files between directories
+* Delete selected files and directories
+* Rename files and directories
+* Download files individually
+* Download all selected files of a directory at once
+* Image thumbnails
+* In-browser preview of images, text, videos, audio, MarkDown and PDF
+* Viewing of office files (OnlyOffice, Collabora Online, EuroOffice)
+
+File and directory creation:
+
+* Create new directories
+* Create and edit text files
+* Upload files directly from browser
+* Upload files using copy/paste
+* Upload files with drag and drop
+* Live preview of **MarkDown** files when editing
+* Edition of office files (OnlyOffice, Collabora Online, EuroOffice)
 
 ## Compatibility
 
@@ -162,18 +165,13 @@ As an example, here is the Apache configuration that will allow your local clien
 
 ## License
 
-This software is available as:
-
-* GNU Affero GPL v3 (this repo)
-* A commercial license to include in proprietary products
-
-Contact us :)
+GNU Affero GPL v3.
 
 ## Authors
 
-* KD2.org / BohwaZ <https://bohwaz.net/> 2022
+* KD2.org / BohwaZ <https://bohwaz.net/> 2022-26
 
-## Other solutions
+## Similar solutions
 
 * [webdav-js](https://github.com/dom111/webdav-js)
 * [WebDavFileTree](https://github.com/Kysic/webdavFileTree)
