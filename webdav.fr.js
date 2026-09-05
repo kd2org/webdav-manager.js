@@ -26,6 +26,7 @@
 	'Presentation': 'Présentation',
 	'Drawing': 'Dessin',
 	'Download': 'Télécharger',
+	'Download as ZIP': 'Télécharger en ZIP',
 	'B': 'o', // Bytes unit
 	'%d minutes ago': 'il y a %d minutes',
 	'%d hours ago': 'il y a %d heures',

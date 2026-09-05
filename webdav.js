@@ -26,7 +26,7 @@ const WebDAVNavigator = async function (url, options) {
 
 	const _ = key => typeof lang_strings != 'undefined' && key in lang_strings ? lang_strings[key] : key;
 
-	const download_button = `<a download title="${_('Download')}" class="btn">${_('Download')}</a>`;
+	const download_button = `<input class="icon download" type="button" value="${_('Download')}" />`;
 	const rename_button = `<input class="icon rename" type="button" value="${_('Rename')}" title="${_('Rename')}" />`;
 	const delete_button = `<input class="icon delete" type="button" value="${_('Delete')}" title="${_('Delete')}" />`;
 	const edit_button = `<input class="icon edit" type="button" value="${_('Edit')}" title="${_('Edit')}" />`;
@@ -50,6 +50,7 @@ const WebDAVNavigator = async function (url, options) {
 			<div class="selection" style="display: none">
 				<div class="buttons">
 					<input type="button" class="icon download" value="${_('Download')}" />
+					<input type="button" class="icon zip" value="${_('Download as ZIP')}" />
 					<input type="button" class="icon delete" value="${_('Delete')}" />
 					<input type="button" class="icon cut" value="${_('Cut')}" />
 					<input type="button" class="icon copy" value="${_('Copy')}" />
@@ -125,6 +126,16 @@ const WebDAVNavigator = async function (url, options) {
 			</D:prop>
 		</D:propfind>`;
 
+	// Global events ////
+	window.addEventListener('beforeunload', () => {
+		// Cancel any current download
+		if (dav.current_xhr) {
+			dav.current_xhr.abort();
+		}
+
+		return true;
+	});
+
 	// Util functions ///////
 
 	const template = (tpl, params) => {
@@ -145,46 +156,6 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	const $ = (a) => document.querySelector(a);
-
-	const formatBytes = (bytes) => {
-		const unit = _('B');
-
-		if (bytes >= 1024*1024*1024) {
-			return Math.round(bytes / (1024*1024*1024)) + ' G' + unit;
-		}
-		else if (bytes >= 1024*1024) {
-			return Math.round(bytes / (1024*1024)) + ' M' + unit;
-		}
-		else if (bytes >= 1024) {
-			return Math.round(bytes / 1024) + ' K' + unit;
-		}
-		else {
-			return bytes + '  ' + unit;
-		}
-	};
-
-	const formatDate = (date) => {
-		if (isNaN(date)) {
-			return '';
-		}
-
-		var now = new Date;
-		var nb_hours = (+(now) - +(date)) / 3600 / 1000;
-
-		if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == now.getDate()) {
-			if (nb_hours <= 1) {
-				return _('%d minutes ago').replace(/%d/, Math.round(nb_hours * 60));
-			}
-			else {
-				return _('%d hours ago').replace(/%d/, Math.round(nb_hours));
-			}
-		}
-		else if (nb_hours <= 24) {
-			return _('Yesterday, %s').replace(/%s/, date.toLocaleTimeString());
-		}
-
-		return date.toLocaleString([], {year: 'numeric', month: 'numeric', day: 'numeric'});
-	};
 
 	const normalizeURL = (url) => {
 		if (!url.match(/^https?:\/\//)) {
@@ -218,8 +189,8 @@ const WebDAVNavigator = async function (url, options) {
 
 	// Classes ///////
 
-	var dav = {'headers': {}},
-		wopi = {'discovery_url': null, 'mimes': {}, 'extensions': {}},
+	var dav = {headers: {}, current_xhr: null},
+		wopi = {discovery_url: null, mimes: {}, extensions: {}},
 		browser = {
 			files: {},
 			selection: {},
@@ -240,6 +211,34 @@ const WebDAVNavigator = async function (url, options) {
 	dav.send = function (method, url, body, headers) {
 		headers = Object.assign(headers || {}, dav.headers);
 		return fetch(url, {method, body, headers});
+	};
+
+	dav.xhr = function (method, url, progress_callback) {
+		var xhr = new XMLHttpRequest();
+		dav.current_xhr = xhr;
+		xhr.responseType = 'blob';
+		var p = new Promise((resolve, reject) => {
+			xhr.open(method, url);
+			xhr.onload = function () {
+				if (this.status >= 200 && this.status < 300) {
+					resolve(xhr.response);
+				} else {
+					reject({
+						status: this.status,
+						statusText: xhr.statusText
+					});
+				}
+			};
+			xhr.onerror = function () {
+				reject({
+					status: this.status,
+					statusText: xhr.statusText
+				});
+			};
+			xhr.onprogress = progress_callback;
+			xhr.send();
+		});
+		return p;
 	};
 
 	dav.propfind = async function (url, body, depth) {
@@ -336,6 +335,43 @@ const WebDAVNavigator = async function (url, options) {
 		return r.status === 200;
 	};
 
+	browser.openDialog = (html, ok_btn = true) => {
+		var tpl = dialog_tpl.replace(/%b/, ok_btn ? `<p><input type="submit" value="${_('OK')}" /></p>` : '');
+		$('body').classList.add('dialog');
+		$('body').insertAdjacentHTML('beforeend', tpl.replace(/%s/, html));
+		$('.close input').onclick = browser.closeDialog;
+		evt = window.addEventListener('keyup', (e) => {
+			if (e.key != 'Escape') return;
+			browser.closeDialog();
+			return false;
+		});
+		if (a = $('dialog form input, dialog form textarea')) a.focus();
+		return $('dialog');
+	};
+
+	browser.replaceDialog = (html, ok_btn = true) => {
+		browser.closeDialog();
+		return browser.openDialog(html, ok_btn);
+	};
+
+	browser.closeDialog = (e) => {
+		if (!$('body').classList.contains('dialog')) {
+			return;
+		}
+
+		if (dav.current_xhr) {
+			dav.current_xhr.abort();
+			dav.current_xhr = null;
+		}
+
+		$('body').classList.remove('dialog');
+		if (!$('dialog')) return;
+		$('dialog').remove();
+		window.removeEventListener('keyup', evt);
+		evt = null;
+	};
+
+
 	browser.init = () => {
 		document.title = _('My files');
 		document.querySelector('html').innerHTML = html_tpl;
@@ -368,7 +404,7 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	browser.open = function (url, push_history, focus_file) {
-		closeDialog();
+		browser.closeDialog();
 		browser.url = normalizeURL(url);
 
 		// Show order in correct column
@@ -445,11 +481,11 @@ const WebDAVNavigator = async function (url, options) {
 			}
 
 			var row = item.is_dir ? dir_row_tpl : file_row_tpl;
-			item.size_bytes = item.size !== null ? formatBytes(item.size).replace(/ /g, '&nbsp;') : null;
+			item.size_bytes = item.size !== null ? utils.formatBytes(item.size).replace(/ /g, '&nbsp;') : null;
 
 			item.icon = (item.extension || '').toUpperCase();
 			item.class = item.is_dir ? 'dir' : 'file';
-			item.modified = item.modified !== null ? formatDate(item.modified) : null;
+			item.modified = item.modified !== null ? utils.formatDate(item.modified) : null;
 			item.name = html(item.name);
 
 			if (item.mime && item.mime.match(/^image\//) && options.nc_thumbnails) {
@@ -609,7 +645,7 @@ const WebDAVNavigator = async function (url, options) {
 		}
 
 		$$('.buttons .rename').onclick = () => {
-			openDialog(rename_dialog);
+			browser.openDialog(rename_dialog);
 			let t = $('input[name=rename]');
 			t.value = file.name;
 			t.focus();
@@ -629,7 +665,7 @@ const WebDAVNavigator = async function (url, options) {
 		};
 
 		$$('.buttons .delete').onclick = (e) => {
-			openDialog(delete_dialog);
+			browser.openDialog(delete_dialog);
 			document.forms[0].onsubmit = () => {
 				dav.send('DELETE', file.url);
 				browser.reload(name);
@@ -638,8 +674,7 @@ const WebDAVNavigator = async function (url, options) {
 		};
 
 		if (!file.is_dir) {
-			$$('.buttons [download]').href = file.url;
-			$$('.buttons [download]').download = file.name;
+			$$('.buttons .download').onclick = () => browser.downloadSingleFile(file);
 		}
 
 		var edit_url, view_url;
@@ -695,7 +730,7 @@ const WebDAVNavigator = async function (url, options) {
 
 	browser.openPreview = (file) => {
 		if (file.name.match(/\.md$/i)) {
-			openDialog('<div class="md_preview"></div>', false);
+			browser.openDialog('<div class="md_preview"></div>', false);
 			$('dialog').className = 'preview';
 			req('GET', file.url).then(r => r.text()).then(t => {
 				$('.md_preview').innerHTML = editor.markdownToHTML(t);
@@ -759,7 +794,7 @@ const WebDAVNavigator = async function (url, options) {
 				}
 
 				window.removeEventListener('beforeunload', preventClose, {capture: true});
-				closeDialog();
+				browser.closeDialog();
 			};
 
 			var save = () => {
@@ -830,7 +865,7 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	browser.reload = function (focus_file) {
-		closeDialog();
+		browser.closeDialog();
 		stopLoading();
 		browser.open(browser.url, false, focus_file);
 	};
@@ -891,10 +926,7 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	browser.createPasteSelection = (action) => {
-		if (!Object.keys(browser.selection).length) {
-			alert(_('No file is selected'));
-			return;
-		}
+		browser.assertFilesAreSelected();
 
 		browser.paste_selection = Object.values(browser.selection);
 		browser.paste_action = action;
@@ -912,30 +944,144 @@ const WebDAVNavigator = async function (url, options) {
 		}
 	};
 
-	browser.downloadSelectedFiles = async () => {
-		var items = document.querySelectorAll('tbody input[type=checkbox]:checked');
-		for (var i = 0; i < items.length; i++) {
-			var input = items[i];
-			var row = input.parentNode.parentNode;
+	browser.download = async (file) => {
+		var progress = (e) => {
+			var p = $('progress');
+			if (!p || e.loaded <= 0) return;
+			p.value = parseInt(p.dataset.downloaded || 0, 10) + e.loaded;
+			$('.progress_bytes').innerHTML = utils.formatBytes(p.value);
+		};
 
-			// Skip directories
-			if (!row.dataset.mime) {
-				return;
-			}
+		if ($('dialog')) {
+			var p = $('progress');
+			p.dataset.downloaded = parseInt(p.dataset.downloaded || 0, 10) + parseInt(p.dataset.current || 0, 10);
+			p.dataset.current = file.size;
+			$('dialog h3').innerText = file.name;
+		}
 
-			await download(row.dataset.name, row.dataset.size, row.querySelector('th a').href);
+		return dav.xhr('GET', file.url, progress);
+	};
+
+	browser.openProgress = (size) => {
+		browser.replaceDialog(`<p class="spinner"><span></span></p>
+			<h3>…</h3>
+			<progress max="${size}"></progress>
+			<p><span class="progress_bytes"></span> / ${utils.formatBytes(size)}</p>`, false);
+	};
+
+	browser.downloadBlob = (blob, name) => {
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.style.display = 'none';
+		a.href = url;
+		a.download = name;
+		document.body.appendChild(a);
+		a.click();
+		window.URL.revokeObjectURL(url)
+	};
+
+	browser.downloadToBrowser = async (file) => {
+		var blob = await browser.download(file);
+		browser.downloadBlob(blob, file.name);
+	};
+
+	browser.downloadSingleFile = async (file) => {
+		browser.openProgress(file.size);
+		await browser.downloadToBrowser(file).then(() => browser.closeDialog());
+		browser.closeDialog();
+	};
+
+	browser.assertFilesAreSelected = () => {
+		if (!Object.keys(browser.selection).length) {
+			alert(_('No file is selected'));
+			throw 'No file is selected';
 		}
 	};
 
-	browser.deleteSelectedFiles = () => {
-		var l = document.querySelectorAll('input[name=delete]:checked');
+	browser.getSelectedFilesOnly = (max_size) => {
+		var files = [];
+		var size = 0;
 
-		if (!l.length) {
-			alert(_('No file is selected'));
-			return;
+		for (var key in browser.selection) {
+			if (!browser.selection.hasOwnProperty(key)) {
+				continue;
+			}
+
+			var file = browser.selection[key];
+
+			// Ignore directories
+			if (file.is_dir) {
+				continue;
+			}
+
+			files.push(file);
+			size += file.size;
+
+			if (size >= max_size) {
+				alert(_('Cannot process: max file size is 4GB'));
+				throw 'Max file size fail';
+			}
 		}
 
-		openDialog(delete_dialog);
+		if (!files.length) {
+			alert(_('No file is selected'));
+			throw 'No file is selected';
+		}
+
+		return [files, size];
+	};
+
+	browser.downloadSelectedFiles = async () => {
+		[files, size] = browser.getSelectedFilesOnly();
+		browser.openProgress(size);
+
+		for (var i = 0; i < files.length; i++) {
+			await browser.downloadToBrowser(files[i]);
+		}
+
+		browser.closeDialog();
+	};
+
+	browser.zipSelectedFiles = async () => {
+		await js.zipwriter();
+
+		[files, size] = browser.getSelectedFilesOnly(4*1024*1024*1024);
+		var zip_name = (browser.root.url === base_url) ? 'files.zip' : browser.root.name + '.zip';
+
+		const zip = new ZipWriter();
+
+		// For Chrome/others
+		if ('showSaveFilePicker' in window) {
+			var handle = await showSaveFilePicker({
+				suggestedName: zip_name
+			});
+			zip.stream().pipeTo(await handle.createWritable());
+		}
+		else {
+			var handle = null;
+		}
+
+		browser.openProgress(size);
+
+		for (const file of files) {
+			await browser.download(file).then(blob => zip.addBlob(file.name, blob));
+		}
+
+		const blob = await zip.close();
+
+		if (null === handle) {
+			browser.downloadBlob(blob, zip_name);
+		}
+
+		browser.closeDialog();
+	};
+
+	browser.deleteSelectedFiles = () => {
+		browser.assertFilesAreSelected();
+
+		var l = document.querySelectorAll('input[name=delete]:checked');
+
+		browser.openDialog(delete_dialog);
 		document.forms[0].onsubmit = () => {
 			animateLoading();
 
@@ -1125,8 +1271,13 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	var js = {};
+	js.root = document.currentScript.src.replace(/\/[^\/]+$/, '/');
 	js.loaded = {};
 	js.load = (url, css) => {
+		if (url.substr(0, 2) === './') {
+			url = js.root + url.substr(2);
+		}
+
 		return new Promise((resolve) => {
 			if (url in js.loaded) {
 				resolve(url);
@@ -1157,6 +1308,8 @@ const WebDAVNavigator = async function (url, options) {
 		resolve();
 	});
 
+	js.zipwriter = () => js.load('./zipwriter.js');
+
 	var css = {};
 	css.all = (selector) => document.querySelectorAll(selector);
 	css.hide = (selector) => css.all(selector).forEach(e => e.style.display = 'none');
@@ -1169,8 +1322,51 @@ const WebDAVNavigator = async function (url, options) {
 		return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
 	};
 
+	var utils = {};
+
+	utils.formatBytes = (bytes) => {
+		const unit = _('B');
+
+		if (bytes >= 1024*1024*1024) {
+			return Math.round(bytes / (1024*1024*1024)) + ' G' + unit;
+		}
+		else if (bytes >= 1024*1024) {
+			return Math.round(bytes / (1024*1024)) + ' M' + unit;
+		}
+		else if (bytes >= 1024) {
+			return Math.round(bytes / 1024) + ' K' + unit;
+		}
+		else {
+			return bytes + '  ' + unit;
+		}
+	};
+
+	utils.formatDate = (date) => {
+		if (isNaN(date)) {
+			return '';
+		}
+
+		var now = new Date;
+		var nb_hours = (+(now) - +(date)) / 3600 / 1000;
+
+		if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == now.getDate()) {
+			if (nb_hours <= 1) {
+				return _('%d minutes ago').replace(/%d/, Math.round(nb_hours * 60));
+			}
+			else {
+				return _('%d hours ago').replace(/%d/, Math.round(nb_hours));
+			}
+		}
+		else if (nb_hours <= 24) {
+			return _('Yesterday, %s').replace(/%s/, date.toLocaleTimeString());
+		}
+
+		return date.toLocaleString([], {year: 'numeric', month: 'numeric', day: 'numeric'});
+	};
+
 	browser.createToolbar = () => {
 		$('.selection .buttons .download').onclick = browser.downloadSelectedFiles;
+		$('.selection .buttons .zip').onclick = browser.zipSelectedFiles;
 		$('.selection .buttons .copy').onclick = () => browser.createPasteSelection('copy');
 		$('.selection .buttons .cut').onclick = () => browser.createPasteSelection('move');
 		$('.selection .buttons .delete').onclick = browser.deleteSelectedFiles;
@@ -1197,13 +1393,13 @@ const WebDAVNavigator = async function (url, options) {
 
 			css.onclick('.toolbar .menu .wopi input', (ev, btn) => {
 				toggle_menu();
-				openDialog(mkfile_dialog);
+				browser.openDialog(mkfile_dialog);
 				var t = $('input[name=mkfile]');
 				var ext = btn.className.substr(-3).toLowerCase();
 				t.focus();
 				document.forms[0].onsubmit = () => {
 					var name = t.value;
-					closeDialog();
+					browser.closeDialog();
 
 					if (!name) return false;
 
@@ -1224,7 +1420,7 @@ const WebDAVNavigator = async function (url, options) {
 
 		$('.mkdir').onclick = () => {
 			toggle_menu();
-			openDialog(mkdir_dialog);
+			browser.openDialog(mkdir_dialog);
 			document.forms[0].onsubmit = () => {
 				var name = $('input[name=mkdir]').value;
 
@@ -1239,7 +1435,7 @@ const WebDAVNavigator = async function (url, options) {
 
 		$('.mktext').onclick = () => {
 			toggle_menu();
-			openDialog(mkfile_dialog);
+			browser.openDialog(mkfile_dialog);
 			var t = $('input[name=mkfile]');
 			t.value = '.md';
 			t.focus();
@@ -1309,34 +1505,6 @@ const WebDAVNavigator = async function (url, options) {
 		return dav.send(method, url, body, headers);
 	};
 
-	const xhr = (method, url, progress_callback) => {
-		var xhr = new XMLHttpRequest();
-		current_xhr = xhr;
-		xhr.responseType = 'blob';
-		var p = new Promise((resolve, reject) => {
-			xhr.open(method, url);
-			xhr.onload = function () {
-				if (this.status >= 200 && this.status < 300) {
-					resolve(xhr.response);
-				} else {
-					reject({
-						status: this.status,
-						statusText: xhr.statusText
-					});
-				}
-			};
-			xhr.onerror = function () {
-				reject({
-					status: this.status,
-					statusText: xhr.statusText
-				});
-			};
-			xhr.onprogress = progress_callback;
-			xhr.send();
-		});
-		return p;
-	};
-
 	const uploadFiles = (files) => {
 		animateLoading();
 
@@ -1360,24 +1528,6 @@ const WebDAVNavigator = async function (url, options) {
 			throw e;
 		});
 	}
-
-	const get_url = async (url) => {
-		var progress = (e) => {
-			var p = $('progress');
-			if (!p || e.loaded <= 0) return;
-			p.value = e.loaded;
-			$('.progress_bytes').innerHTML = formatBytes(e.loaded);
-		};
-
-		if (temp_object_url) {
-			window.URL.revokeObjectURL(temp_object_url);
-		}
-
-		return await xhr('GET', url, progress).then(blob => {
-			temp_object_url = window.URL.createObjectURL(blob);
-			return temp_object_url;
-		});
-	};
 
 	wopi.init = async function (discovery_url) {
 		try {
@@ -1449,7 +1599,7 @@ const WebDAVNavigator = async function (url, options) {
 
 		wopi_url += '&WOPISrc=' + encodeURIComponent(src);
 
-		openDialog(wopi_dialog, false);
+		browser.openDialog(wopi_dialog, false);
 		$('dialog').className = 'preview';
 
 		var f = $('dialog form');
@@ -1460,81 +1610,21 @@ const WebDAVNavigator = async function (url, options) {
 		f.submit();
 	};
 
-	const openDialog = (html, ok_btn = true) => {
-		var tpl = dialog_tpl.replace(/%b/, ok_btn ? `<p><input type="submit" value="${_('OK')}" /></p>` : '');
-		$('body').classList.add('dialog');
-		$('body').insertAdjacentHTML('beforeend', tpl.replace(/%s/, html));
-		$('.close input').onclick = closeDialog;
-		evt = window.addEventListener('keyup', (e) => {
-			if (e.key != 'Escape') return;
-			closeDialog();
-			return false;
-		});
-		if (a = $('dialog form input, dialog form textarea')) a.focus();
-	};
-
-	const closeDialog = (e) => {
-		if (!$('body').classList.contains('dialog')) {
-			return;
-		}
-
-		if (current_xhr) {
-			current_xhr.abort();
-			current_xhr = null;
-		}
-
-		window.onbeforeunload = null;
-
-		$('body').classList.remove('dialog');
-		if (!$('dialog')) return;
-		$('dialog').remove();
-		window.removeEventListener('keyup', evt);
-		evt = null;
-	};
-
-	const download = async (name, size, url) => {
-		window.onbeforeunload = () => {
-			if (current_xhr) {
-				current_xhr.abort();
-			}
-
-			return true;
-		};
-
-		openDialog(`<p class="spinner"><span></span></p>
-			<h3>${html(name)}</h3>
-			<progress max="${size}"></progress>
-			<p><span class="progress_bytes"></span> / ${formatBytes(size)}</p>`, false);
-
-		await get_url(url);
-		const a = document.createElement('a');
-		a.style.display = 'none';
-		a.href = temp_object_url;
-		a.download = name;
-		document.body.appendChild(a);
-		a.click();
-		window.URL.revokeObjectURL(temp_object_url);
-		a.remove();
-
-		closeDialog();
-		window.onbeforeunload = null;
-	};
-
 	const preview = (type, url) => {
 		if (type.match(/^image\//)) {
-			openDialog(`<img src="${url}" />`, false);
+			browser.openDialog(`<img src="${url}" />`, false);
 		}
 		else if (type.match(/^audio\//)) {
-			openDialog(`<audio controls="true" autoplay="true" src="${url}" />`, false);
+			browser.openDialog(`<audio controls="true" autoplay="true" src="${url}" />`, false);
 		}
 		else if (type.match(/^video\//)) {
-			openDialog(`<video controls="true" autoplay="true" src="${url}" />`, false);
+			browser.openDialog(`<video controls="true" autoplay="true" src="${url}" />`, false);
 		}
 		else if (type.match(/pdf/)) {
-			openDialog(`<iframe src="${url}" />`, false);
+			browser.openDialog(`<iframe src="${url}" />`, false);
 		}
 		else {
-			openDialog(`<iframe sandbox="" src="${url}" />`, false);
+			browser.openDialog(`<iframe sandbox="" src="${url}" />`, false);
 		}
 
 		$('dialog').className = 'preview';
@@ -1549,7 +1639,6 @@ const WebDAVNavigator = async function (url, options) {
 	};
 
 	var items = [[], []];
-	var current_xhr = null;
 	var current_url = url;
 	var base_url = url;
 	const user = options.user || null;
@@ -1564,7 +1653,7 @@ const WebDAVNavigator = async function (url, options) {
 		base_url = location.href.replace(/^(https?:\/\/[^\/]+\/).*$/, '$1') + base_url.replace(/^\/+/, '');
 	}
 
-	var evt, paste_upload, popstate_evt, temp_object_url;
+	var evt, paste_upload, popstate_evt;
 	var sort_order = window.localStorage.getItem('sort_order') || 'name';
 	var sort_order_desc = !!parseInt(window.localStorage.getItem('sort_order_desc'), 10);
 
@@ -1591,7 +1680,7 @@ const WebDAVNavigator = async function (url, options) {
 
 				paste_upload = f;
 
-				openDialog(paste_upload_dialog);
+				browser.openDialog(paste_upload_dialog);
 
 				let t = $('input[name=paste_name]');
 				t.value = name;
