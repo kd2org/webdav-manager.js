@@ -1,4 +1,4 @@
-﻿var lang_strings = {
+﻿browser.lang['fr'] = {
 	'Rename': 'Renommer',
 	'Delete': 'Supprimer',
 	'Edit': 'Éditer',

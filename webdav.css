@@ -457,7 +457,7 @@ dialog.preview {
 	bottom: 0;
 	padding: 0;
 	border-radius: 0;
-	background: var(--g1-color);
+	background: transparent;
 	overflow: hidden;
 }
 
@@ -621,7 +621,6 @@ dialog.preview .md_preview {
 	width: 100%;
 	margin: 0;
 	padding: .2em;
-	background: var(--g3-color);
 }
 
 .preview p.close input.close {
@@ -725,6 +724,7 @@ dialog:has(#mdp) {
 	right: 0;
 	bottom: 0;
 	height: 100vh;
+	width: calc(100vw - 1em);
 }
 
 dialog:has(progress) {

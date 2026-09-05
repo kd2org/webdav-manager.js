@@ -1,6 +1,5 @@
 General:
 
-* finish refactor
 * Refactor / clean CSS
 * Export markdown preview to HTML
 * Drag and drop to move files
@@ -19,7 +18,7 @@ Multimedia:
 
 Host features:
 
-* Support WebDAV property that says if file has a thumbnail to display
+* Support WebDAV property that says if file has a thumbnail to display (<nc:has-preview />)
 * Support for NextCloud sharing
 * Support for colors from NextCloud capabilities
 * Support for custom additional CSS
