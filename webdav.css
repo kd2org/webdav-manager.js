@@ -278,7 +278,7 @@ input[type=text], textarea {
 	color: var(--fg-color);
 }
 
-input:focus, textarea:focus {
+input:focus, textarea:focus, .dual:has(textarea:focus) {
 	box-shadow: 0px 0px 5px var(--active-color);
 	outline: 1px solid var(--active-color);
 }
@@ -315,8 +315,15 @@ dialog .toolbar .save {
 }
 
 dialog .toolbar .status {
-	width: 10em;
+	padding: .2em .5em;
+	background: var(--bg-color);
 	display: block;
+	border-radius: .5em;
+	width: 8em;
+}
+
+dialog .toolbar .status:empty {
+	visibility: hidden;
 }
 
 input[type=submit] {
@@ -422,33 +429,7 @@ dialog form div {
 	font-size: 1em;
 }
 
-#mdp div, #mdp textarea {
-	width: calc(100% - 1em);
-	padding: .5em;
-	font-size: 1em;
-	height: calc(100% - 1em);
-	text-align: left;
-	margin: 0;
-}
-
-#mdp .md_preview {
-	overflow: hidden;
-	overflow-x: auto;
-}
-
-#mdp {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	grid-gap: .2em;
-	background: var(--g1-color);
-	height: 90vh;
-}
-
-.md_preview img, .md_preview video, .md_preview iframe, .md_preview embed, .md_preview object {
-	max-width: 100%;
-}
-
-dialog.preview {
+dialog.preview, dialog.edit {
 	height: calc(100%);
 	width: calc(100%);
 	top: 0;
@@ -615,6 +596,10 @@ dialog.preview .md_preview {
 	background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="%23c47508" d="M14 0H2C.9 0 0 .9 0 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V2c0-1.1-.9-2-2-2m0 14H2V2h12z"/></svg>');
 }
 
+.md_preview img, .md_preview video, .md_preview iframe, .md_preview embed, .md_preview object {
+	max-width: 100%;
+}
+
 .preview p.close {
 	text-align: center;
 	display: block;
@@ -640,6 +625,63 @@ dialog.preview .md_preview {
 
 input[name=rename], input[name=paste_name] {
 	width: 30em;
+}
+
+dialog.edit {
+	display: flex;
+	flex-direction: column;
+	gap: 1em;
+	height: calc(100% - 2em);
+	width: calc(100% - 2em);
+	padding: 1em;
+	min-height: 0;
+}
+
+dialog.edit form {
+	flex-grow: 1;
+	display: flex;
+	min-height: 0;
+}
+
+dialog.edit form > div {
+	display: flex;
+	flex-grow: 1;
+	margin: 0;
+	min-height: 0;
+}
+
+dialog.edit form div textarea {
+	width: calc(100% - 1em);
+	height: calc(100% - 1em);
+}
+
+dialog.edit .dual {
+	margin: 0;
+	flex-grow: 1;
+	display: grid;
+	grid-template-columns: .5fr .5fr;
+	grid-template-rows: minmax(0, 1fr);
+	gap: .2em;
+	border-radius: .5em;
+	box-shadow: 0px 0px 5px var(--fg-color);
+	overflow: hidden;
+}
+
+dialog.edit .dual > * {
+	margin: 0;
+	min-width: 0;
+	min-height: 0;
+	padding: .5em;
+}
+
+dialog.edit .dual textarea:focus {
+	box-shadow: none;
+	outline: none;
+}
+
+dialog.edit .md_preview {
+	text-align: left;
+	overflow: hidden;
 }
 
 .bg {
@@ -713,18 +755,6 @@ dialog {
 	transition: all .3s;
 	margin: auto;
 	padding: 1em;
-}
-
-dialog:has(#mdp) {
-	margin: 0;
-	padding: .5em;
-	border-radius: 0;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	height: 100vh;
-	width: calc(100vw - 1em);
 }
 
 dialog:has(progress) {
