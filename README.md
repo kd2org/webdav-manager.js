@@ -23,7 +23,8 @@ File management:
 * Delete selected files and directories
 * Rename files and directories
 * Download files individually
-* Download all selected files of a directory at once
+* Download selected files
+* Download selected files as a ZIP archive
 * Image thumbnails
 * In-browser preview of images, text, videos, audio, MarkDown and PDF
 * Viewing of office files (OnlyOffice, Collabora Online, EuroOffice)
