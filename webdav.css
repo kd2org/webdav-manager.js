@@ -359,6 +359,7 @@ dialog form div {
 
 .toolbar .buttons {
 	display: flex;
+	flex-wrap: wrap;
 }
 
 .toolbar .selection {
@@ -411,6 +412,7 @@ dialog form div {
 	display: flex;
 	flex-direction: column;
 	box-shadow: 0px 0px 10px var(--g3-color);
+	z-index: 20;
 }
 
 .menu .wopi {
@@ -805,7 +807,7 @@ body.gallery thead td {
 	display: flex;
     align-items: center;
     justify-content: start;
-    padding: .2em .5em;
+    padding: 0 .5em;
     text-align: center;
 }
 
@@ -820,10 +822,12 @@ body.gallery tbody {
 	grid-gap: .5em;
 	justify-content: start;
 	padding: .5em;
+	width: calc(100% - 2em);
+	margin: 0 auto;
 }
 
 body.gallery tbody tr {
-	border: 1px solid var(--g2-color);
+	border: 1px solid var(--g1-color);
 	border-radius: .3em;
 	padding: .3em;
 	position: relative;
@@ -833,7 +837,6 @@ body.gallery tbody tr {
 	justify-content: center;
     grid-gap: .2em;
     text-align: center;
-    padding: .3em 0;
 }
 
 body.gallery tbody th, body.gallery tbody td {
@@ -989,7 +992,7 @@ body.gallery tbody .buttons div.open {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 600px) {
 	.upload {
 		display: flex;
 		flex-direction: row;
@@ -997,8 +1000,13 @@ body.gallery tbody .buttons div.open {
 		flex-wrap: wrap;
 	}
 
-	body {
-		margin: 0;
+	.toolbar .icon.list {
+		display: none;
+	}
+
+	body.gallery .buttons .options {
+		width: 2em;
+		height: 2.5em;
 	}
 
 	.toolbar {
@@ -1008,90 +1016,8 @@ body.gallery tbody .buttons div.open {
 		font-size: .9em;
 	}
 
-	.toolbar .selected {
-		margin: 0;
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		padding: 1em;
-		background: var(--bg-color);
-		box-shadow: 0px 0px 2px 5px var(--g3-color);
-	}
-
-	table {
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-	}
-
-	table tbody tr {
-		display: grid;
-		grid-template-columns: 3rem 1fr .3fr;
-		grid-template-areas:
-			"name name check"
-			"size date buttons";
-		padding: 0;
-	}
-
-	table tbody td, table tbody th {
-		border: none;
-		display: block;
-		padding: .2em .5em;
-		width: unset;
-	}
-
-	table tbody th {
-		grid-area: name;
-	}
-
-	table tbody td.check {
-		grid-area: check;
-		text-align: right;
-		width: unset;
-	}
-
-	table tbody td.buttons {
-		grid-area: buttons;
-		width: unset;
-	}
-
-	table tbody  td.date {
-		grid-area: date;
-		display: inline-block;
-		min-width: unset;
-	}
-
-	table tbody td.size {
-		grid-area: size;
-		font-size: .8em;
-		width: 3rem;
-		overflow: hidden;
-		text-align: center;
-	}
-
-	table th a {
-		font-size: 1.2em;
-		gap: .5em;
-	}
-
-	table thead tr {
-		display: block;
-		text-align: left;
-	}
-
-	table thead tr td {
-		display: inline-block;
-		vertical-align: top;
-	}
-
-	table thead td.check {
-		float: right;
-		margin-right: .4em;
-	}
-
-	table thead button {
-		font-size: 1rem;
+	.toolbar .selection .cancel {
+		margin-left: 1em;
 	}
 
 	input[name=rename], input[name=paste_name] {
