@@ -278,7 +278,7 @@ input[type=text], textarea {
 	color: var(--fg-color);
 }
 
-input:focus, textarea:focus, .dual:has(textarea:focus) {
+input:focus, .editor > textarea:focus, .dual:has(textarea:focus) {
 	box-shadow: 0px 0px 5px var(--active-color);
 	outline: 1px solid var(--active-color);
 }
@@ -303,22 +303,22 @@ dialog .toolbar {
 }
 
 dialog .toolbar label {
-	padding: .5em;
+	padding: .2em .5em;
+	font-size: .9em;
 	background: var(--bg-color);
 	cursor: pointer;
-	border-radius: .5em;
+	border-radius: .3em;
 }
 
 dialog .toolbar .save {
-	background: DarkSlateBlue;
-	color: #fff;
+	box-shadow: 0px 0px 5px 2px var(--fg-color);
 }
 
 dialog .toolbar .status {
 	padding: .2em .5em;
 	background: var(--bg-color);
 	display: block;
-	border-radius: .5em;
+	border-radius: .3em;
 	width: 8em;
 }
 
@@ -343,7 +343,7 @@ dialog {
 	border-radius: .5em;
 }
 
-dialog form div {
+dialog form > div {
 	clear: both;
 	margin: 2em 0;
 	text-align: center;
@@ -652,9 +652,23 @@ dialog.edit form > div {
 	min-height: 0;
 }
 
-dialog.edit form div textarea {
+dialog.edit form .editor > textarea {
 	width: calc(100% - 1em);
 	height: calc(100% - 1em);
+}
+
+dialog.edit .editor {
+    width: 100%;
+    height: 100%;
+	text-align: left;
+}
+
+.prism-code-editor {
+    width: 100%;
+    height: 100%;
+    font-family: "Hack";
+    font-size: 14pt;
+    border-radius: .3em;
 }
 
 dialog.edit .dual {
@@ -673,7 +687,6 @@ dialog.edit .dual > * {
 	margin: 0;
 	min-width: 0;
 	min-height: 0;
-	padding: .5em;
 }
 
 dialog.edit .dual textarea:focus {
@@ -683,7 +696,8 @@ dialog.edit .dual textarea:focus {
 
 dialog.edit .md_preview {
 	text-align: left;
-	overflow: hidden;
+	overflow: auto;
+	padding: .5em;
 }
 
 .bg {
@@ -779,22 +793,22 @@ input.icon {
 	display: inline-block;
 }
 
-body .buttons .options {
+body main .buttons .options {
 	display: none;
 }
 
-body.gallery table {
+body.gallery main table {
 	display: flex;
 	flex-direction: column;
 }
 
-body.gallery thead {
+body.gallery main thead {
 	display: flex;
 	width: 100%;
 	border-bottom: 1px solid var(--g2-color);
 }
 
-body.gallery thead tr {
+body.gallery main thead tr {
 	flex-grow: 1;
 	display: flex;
 	justify-content: stretch;
@@ -802,7 +816,7 @@ body.gallery thead tr {
 	gap: .5em;
 }
 
-body.gallery thead td {
+body.gallery main thead td {
 	flex-grow: 1;
 	display: flex;
     align-items: center;
@@ -811,11 +825,11 @@ body.gallery thead td {
     text-align: center;
 }
 
-body.gallery thead td.check, body.gallery thead td:last-child {
+body.gallery main thead td.check, body.gallery main thead td:last-child {
 	flex-grow: 0;
 }
 
-body.gallery tbody {
+body.gallery main tbody {
 	display: grid;
 	gap: .3em;
 	grid-template-columns: repeat(auto-fit, minmax(170px, .5fr));
@@ -826,7 +840,7 @@ body.gallery tbody {
 	margin: 0 auto;
 }
 
-body.gallery tbody tr {
+body.gallery main tbody tr {
 	border: 1px solid var(--g1-color);
 	border-radius: .3em;
 	padding: .3em;
@@ -839,14 +853,14 @@ body.gallery tbody tr {
     text-align: center;
 }
 
-body.gallery tbody th, body.gallery tbody td {
+body.gallery main tbody th, body.gallery main tbody td {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	border: none;
 }
 
-body.gallery tbody .check {
+body.gallery main tbody .check {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -857,14 +871,14 @@ body.gallery tbody .check {
 	border-top-left-radius: .3em;
 }
 
-body.gallery tbody td.date {
+body.gallery main tbody td.date {
 	font-size: .7em;
 }
 
-body.gallery tbody td.size {
+body.gallery main tbody td.size {
 	display: none;
 }
-body.gallery tbody th a {
+body.gallery main tbody th a {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -872,23 +886,23 @@ body.gallery tbody th a {
 	gap: .3em;
 }
 
-body.gallery tbody th a .name {
+body.gallery main tbody th a .name {
 	max-height: 1.5em;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-size: .9em;
 }
 
-body.gallery tbody th a .icon, body.gallery tbody th img {
+body.gallery main tbody th a .icon, body.gallery main tbody th img {
 	width: 150px;
 	height: 150px;
 }
 
-body.gallery tbody th .icon b {
+body.gallery main tbody th .icon b {
 	font-size: 12pt;
 }
 
-body.gallery .buttons .options {
+body.gallery main .buttons .options {
 	display: unset;
 	border-bottom-left-radius: 50%;
 	margin-top: 0;
@@ -896,7 +910,7 @@ body.gallery .buttons .options {
 	width: 1.5em;
 }
 
-body.gallery tbody .buttons {
+body.gallery main tbody .buttons {
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -908,7 +922,7 @@ body.gallery tbody .buttons {
 	flex-direction: column;
 }
 
-body.gallery tbody .buttons div {
+body.gallery main tbody .buttons div {
 	display: none;
 	flex-direction: row-reverse;
 	justify-content: center;
@@ -922,7 +936,7 @@ body.gallery tbody .buttons div {
 	z-index: 12;
 }
 
-body.gallery tbody .buttons div input.icon {
+body.gallery main tbody .buttons div input.icon {
 	text-indent: unset;
 	overflow: unset;
 	width: 100%;
@@ -934,7 +948,7 @@ body.gallery tbody .buttons div input.icon {
 	font-size: 1.1em;
 }
 
-body.gallery tbody .buttons div.open {
+body.gallery main tbody .buttons div.open {
 	display: flex;
 }
 
