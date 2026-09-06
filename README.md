@@ -171,6 +171,7 @@ GNU Affero GPL v3.
 ## Authors
 
 * KD2.org / BohwaZ <https://bohwaz.net/> 2022-26
+* Icons: Google Material Design icons
 
 ## Similar solutions
 

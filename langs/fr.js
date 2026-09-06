@@ -1,4 +1,4 @@
-﻿browser.lang['fr'] = {
+﻿browser.lang_strings.fr = {
 	'Rename': 'Renommer',
 	'Delete': 'Supprimer',
 	'Edit': 'Éditer',
@@ -40,4 +40,10 @@
 	'Selected:': 'Sélectionné :',
 	'%d files': '%d fichiers',
 	'%d directories': '%d répertoires',
+	'Move': 'Déplacer',
+	'Copy': 'Copier',
+	'Move here': 'Déplacer ici',
+	'Copy here': 'Copier ici',
+	'View as list': 'Voir en liste',
+	'View as gallery': 'Voir en galerie'
 };

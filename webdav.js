@@ -41,5 +41,6 @@ js.load = (url, css) => {
 	await js.load('./lib/utils.js');
 	await js.load('./lib/wopi.js');
 	await js.load('./lib/zipwriter.js');
+	await js.load('./langs/fr.js');
 	await js.load('./vendor/prism_editor.js', './vendor/prism_editor.css');
 })();
