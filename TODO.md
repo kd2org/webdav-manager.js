@@ -1,5 +1,6 @@
 # Minimal
 
+* Download of directories in Zip file
 * Support displaying used / available quota
 * Display old file name when renaming
 * Display more visible warning when deleting a folder "Tous les sous-dossiers et fichiers de ce dossier seront placés à la corbeille !"

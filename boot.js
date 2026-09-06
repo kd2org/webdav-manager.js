@@ -33,7 +33,7 @@ js.load = (url, css) => {
 };
 
 (async function() {
-	await js.load('./lib/browser.js', './webdav.css');
+	await js.load('./lib/browser.js', './style.css');
 	await js.load('./lib/css.js');
 	await js.load('./lib/dav.js');
 	await js.load('./lib/editor.js');

@@ -13,7 +13,7 @@ This is drop-in JS client that you can use to enhance the web interface of a Web
 * Localization support (currently: French, English)
 * Responsive: works with mobiles and desktop browsers
 * Support for light and dark theme
-* Only 20KB gzipped! (JS+CSS)
+* Only 21KB gzipped! (JS+CSS)
 * Single file, self-contained, no dependencies, no silly NPM stuff!
 
 File management:
@@ -28,6 +28,7 @@ File management:
 * Image thumbnails
 * In-browser preview of images, text, videos, audio, MarkDown and PDF
 * Viewing of office files (OnlyOffice, Collabora Online, EuroOffice)
+* List and gallery display modes
 
 File and directory creation:
 
