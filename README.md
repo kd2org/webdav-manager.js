@@ -39,6 +39,7 @@ File and directory creation:
 * Upload files with drag and drop
 * Live preview of **MarkDown** files when editing
 * Edition of office files (OnlyOffice, Collabora Online, EuroOffice)
+* Optional integration of [Prism code editor](https://prism-code-editor.netlify.app) (+20 KB gzipped) for code/markdown editing
 
 ## Compatibility
 
