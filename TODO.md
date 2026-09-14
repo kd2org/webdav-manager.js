@@ -6,8 +6,6 @@
 * Display more visible warning when deleting a folder "Tous les sous-dossiers et fichiers de ce dossier seront placés à la corbeille !"
 * Navigation between images with buttons and keyboard
 * Fix or remove dark theme
-* Change "OK" action buttons to have an actionable verb (eg. "Delete", "Rename", etc.)
-* Rename "Close" button to "Cancel" for delete/rename/share/etc dialogs
 
 Host features:
 
