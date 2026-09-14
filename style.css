@@ -7,6 +7,7 @@
 	--link-color: #2e3c3a;
 	--visited-color: #2e3c3a;
 	--active-color: #c47508;
+	--darkgrey-color: #999;
 }
 
 * {
@@ -95,10 +96,30 @@ main tbody th a {
 	gap: 1em;
 }
 
-main tbody th img {
+main tbody th a .fullname {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+main tbody th a .ext {
+	color: var(--darkgrey-color);
+	overflow: visible;
+}
+
+main tbody th a .thumb {
 	width: 2em;
 	height: 2em;
 	border-radius: .2em;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+
+main tbody th a .thumb img {
+	max-width: 100%;
+	max-height: 100%;
 }
 
 main tbody th .icon {
@@ -242,12 +263,12 @@ th .icon.MP4, th .icon.MKV, th .icon.MP3, th .icon.M4A, th .icon.WAV, th .icon.F
 td.size {
 	text-align: right;
 	font-size: .9em;
-	color: #666;
+	color: var(--darkgrey-color);
 }
 
 td.date {
 	font-size: .9em;
-	color: #666;
+	color: var(--darkgrey-color);
 	min-width: 9em;
 }
 
@@ -388,7 +409,7 @@ dialog form > div {
 	align-items: center;
 	gap: .5em;
 	margin-left: .5em;
-	color: #666;
+	color: var(--darkgrey-color);
 }
 
 .toolbar input.icon {
@@ -423,7 +444,7 @@ dialog form > div {
 .menu h5 {
 	font-weight: normal;
 	margin: .5em 0;
-	color: #666;
+	color: var(--darkgrey-color);
 }
 
 .menu input {
@@ -658,17 +679,17 @@ dialog.edit form .editor > textarea {
 }
 
 dialog.edit .editor {
-    width: 100%;
-    height: 100%;
+	width: 100%;
+	height: 100%;
 	text-align: left;
 }
 
 .prism-code-editor {
-    width: 100%;
-    height: 100%;
-    font-family: "Hack";
-    font-size: 14pt;
-    border-radius: .3em;
+	width: 100%;
+	height: 100%;
+	font-family: "Hack";
+	font-size: 14pt;
+	border-radius: .3em;
 }
 
 dialog.edit .dual {
@@ -819,10 +840,10 @@ body.gallery main thead tr {
 body.gallery main thead td {
 	flex-grow: 1;
 	display: flex;
-    align-items: center;
-    justify-content: start;
-    padding: 0 .5em;
-    text-align: center;
+	align-items: center;
+	justify-content: start;
+	padding: 0 .5em;
+	text-align: center;
 }
 
 body.gallery main thead td.check, body.gallery main thead td:last-child {
@@ -849,8 +870,8 @@ body.gallery main tbody tr {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-    grid-gap: .2em;
-    text-align: center;
+	grid-gap: .2em;
+	text-align: center;
 }
 
 body.gallery main tbody th, body.gallery main tbody td {
@@ -878,22 +899,37 @@ body.gallery main tbody td.date {
 body.gallery main tbody td.size {
 	display: none;
 }
+
+body.gallery main tbody th {
+	min-width: 0;
+	max-width: 100%;
+}
+
 body.gallery main tbody th a {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	gap: .3em;
+	min-width: 0;
 }
 
-body.gallery main tbody th a .name {
+body.gallery main tbody th a .fullname {
 	max-height: 1.5em;
+	font-size: .9em;
+	display: flex;
+	justify-content: center;
+	max-width: 100%;
+	min-width: 0;
+}
+
+body.gallery main tbody th a .fullname .name {
 	overflow: hidden;
 	text-overflow: ellipsis;
-	font-size: .9em;
+	white-space: nowrap;
 }
 
-body.gallery main tbody th a .icon, body.gallery main tbody th img {
+body.gallery main tbody th a .icon, body.gallery main tbody th a .thumb {
 	width: 150px;
 	height: 150px;
 }
