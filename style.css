@@ -96,12 +96,6 @@ main tbody th a {
 	gap: 1em;
 }
 
-main tbody th a .fullname {
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-
 main tbody th a .ext {
 	color: var(--darkgrey-color);
 	overflow: visible;
@@ -368,6 +362,55 @@ dialog form > div {
 	clear: both;
 	margin: 2em 0;
 	text-align: center;
+}
+
+.quota, .search {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.quota a {
+	background-color: var(--g1-color);
+    background-image: linear-gradient(90deg, var(--g2-color) calc(var(--percent) * 1%), var(--g1-color) calc(var(--percent) * 1% + 2%));
+    border: 1px solid var(--g2-color);
+    border-radius: .3em;
+    height: 1.5rem;
+    width: 15em;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: help;
+    font-size: .9em;
+}
+
+.quota a[href] {
+	cursor: pointer;
+}
+
+.quota a .details {
+    color: var(--gTextColor);
+    position: absolute;
+    display: none;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    text-align: center;
+    background: var(--g1-color);
+    white-space: nowrap;
+    border-radius: .3em;
+    padding: .3em .5em;
+    z-index: 1000;
+}
+
+.quota a[href] .details {
+    box-shadow: 0 0 5px 2px var(--active-color);
+}
+
+.quota a:active .details, .quota a:hover .details {
+    display: block;
 }
 
 .toolbar {
@@ -915,6 +958,9 @@ body.gallery main tbody th a {
 }
 
 body.gallery main tbody th a .fullname {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 	max-height: 1.5em;
 	font-size: .9em;
 	display: flex;

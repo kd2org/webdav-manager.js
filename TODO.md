@@ -1,7 +1,6 @@
 # Minimal
 
-* Download of directories in Zip file
-* Support displaying used / available quota
+* Recursive download of directories in Zip file
 * Display old file name when renaming
 * Display more visible warning when deleting a folder "Tous les sous-dossiers et fichiers de ce dossier seront placés à la corbeille !"
 * Add breadcrumbs navigation
@@ -11,11 +10,12 @@
 
 Host features:
 
+* Support WebDAV SEARCH method, see https://docs.nextcloud.com/server/stable/developer_manual/client_apis/WebDAV/search.html
+	* Also support for full-text search using `d:contains`: https://greenbytes.de/tech/specs/draft-reschke-webdav-search-04.html#rfc.section.5.15
 * Support for options.has_trash to have different dialogs/messages if the server puts files in trash
 * Support custom message when deleting a file / folder : "Seul un membre administrateur pourra récupérer le fichier dans la corbeille."
 * Support for basic NextCloud sharing API
 * Support for colors from NextCloud capabilities
-* Support for search button
 * Custom actions for one file (eg. list file versions)
 * Custom actions for selected files (eg. assign files to accounting)
 * Better integration if living inside an iframe
@@ -25,6 +25,7 @@ Host features:
 
 General:
 
+* Cancel download of selected files / zip during download
 * Export markdown preview to HTML
 * Drag and drop to move files
 * Keyboard navigation (up, down, check file, open file)

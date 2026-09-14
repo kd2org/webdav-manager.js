@@ -29,6 +29,7 @@ File management:
 * In-browser preview of images, text, videos, audio, MarkDown and PDF
 * Viewing of office files (OnlyOffice, Collabora Online, EuroOffice)
 * List and gallery display modes
+* Display of used / available quota
 
 File and directory creation:
 
