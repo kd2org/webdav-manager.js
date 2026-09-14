@@ -180,6 +180,18 @@ main td.buttons div {
 	gap: .4em;
 }
 
+body.desktop.list main td.buttons div input {
+	opacity: 0.2;
+}
+
+body.desktop.list main td.buttons div input.shared {
+	opacity: 0.5;
+}
+
+body.desktop.list main tr:hover td.buttons div input {
+	opacity: unset;
+}
+
 main tbody tr:nth-child(even) {
 	background: var(--g1-color);
 }
@@ -401,17 +413,18 @@ dialog form > div {
 
 .quota a {
 	background-color: var(--g1-color);
-    background-image: linear-gradient(90deg, var(--g2-color) calc(var(--percent) * 1%), var(--g1-color) calc(var(--percent) * 1% + 2%));
-    border: 1px solid var(--g2-color);
-    border-radius: .3em;
-    height: 1.5rem;
-    width: 15em;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    cursor: help;
-    font-size: .9em;
+	background-image: linear-gradient(90deg, var(--g2-color) calc(var(--percent) * 1%), var(--g1-color) calc(var(--percent) * 1% + 2%));
+	border: 1px solid var(--g2-color);
+	border-radius: 1em;
+	height: 1.5em;
+	min-width: 17em;
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	cursor: help;
+	font-size: .9em;
+	overflow: hidden;
 }
 
 .quota a[href] {
@@ -419,27 +432,29 @@ dialog form > div {
 }
 
 .quota a .details {
-    color: var(--gTextColor);
-    position: absolute;
-    display: none;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    text-align: center;
-    background: var(--g1-color);
-    white-space: nowrap;
-    border-radius: .3em;
-    padding: .3em .5em;
-    z-index: 1000;
+	color: var(--gTextColor);
+	position: absolute;
+	display: none;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	height: calc(100% - .6em);
+	justify-content: center;
+	align-items: center;
+	background: var(--g1-color);
+	white-space: nowrap;
+	border-radius: .3em;
+	padding: .3em .5em;
+	z-index: 1000;
 }
 
 .quota a[href] .details {
-    box-shadow: 0 0 5px 2px var(--active-color);
+	box-shadow: 0 0 5px 2px var(--active-color);
 }
 
 .quota a:active .details, .quota a:hover .details {
-    display: block;
+	display: flex;
 }
 
 .toolbar {
@@ -448,6 +463,7 @@ dialog form > div {
 	margin: 0 .7rem;
 	margin-top: .5rem;
 	position: relative;
+	gap: .3em;
 }
 
 .toolbar .buttons {
@@ -1017,6 +1033,15 @@ body.gallery main tbody th .icon b {
 	font-size: 12pt;
 }
 
+body.mobile main tbody tr {
+	position: relative;
+}
+
+body.gallery main .buttons,
+body.mobile main .buttons {
+	border: none;
+}
+
 body.gallery main .buttons .options {
 	display: unset;
 	border-bottom-left-radius: 50%;
@@ -1025,7 +1050,11 @@ body.gallery main .buttons .options {
 	width: 1.5em;
 }
 
-body.gallery main tbody .buttons {
+body.mobile main .buttons .options {
+	display: unset;
+}
+
+body.gallery main tbody .buttons, body.mobile main tbody .buttons {
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -1037,7 +1066,7 @@ body.gallery main tbody .buttons {
 	flex-direction: column;
 }
 
-body.gallery main tbody .buttons div {
+body.gallery main tbody .buttons div, body.mobile main tbody .buttons div {
 	display: none;
 	flex-direction: row-reverse;
 	justify-content: center;
@@ -1063,7 +1092,7 @@ body.gallery main tbody .buttons div input.icon {
 	font-size: 1.1em;
 }
 
-body.gallery main tbody .buttons div.open {
+body main tbody .buttons div.open {
 	display: flex;
 }
 
@@ -1117,6 +1146,14 @@ body.gallery main tbody .buttons div.open {
 
 .icon.list {
 	background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32.64" height="32" viewBox="0 0 666 653"><path fill="currentColor" d="M44 128h578c25 0 44-19 44-44c0-24-19-43-44-43H44C19 41 0 60 0 84c0 25 19 44 44 44m0 175h578c25 0 44-19 44-44c0-24-19-43-44-43H44c-25 0-44 19-44 43c0 25 19 44 44 44m0 175h578c25 0 44-19 44-43c0-25-19-44-44-44H44c-25 0-44 19-44 44c0 24 19 43 44 43m0 175h578c25 0 44-19 44-43c0-25-19-44-44-44H44c-25 0-44 19-44 44c0 24 19 43 44 43"/></svg>');
+}
+
+.icon.share {
+	background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12C9 13.3807 7.88071 14.5 6.5 14.5C5.11929 14.5 4 13.3807 4 12C4 10.6193 5.11929 9.5 6.5 9.5C7.88071 9.5 9 10.6193 9 12Z"/><path stroke-linecap="round" d="M14 6.5L9 10"/><path stroke-linecap="round" d="M14 17.5L9 14"/><path d="M19 18.5C19 19.8807 17.8807 21 16.5 21C15.1193 21 14 19.8807 14 18.5C14 17.1193 15.1193 16 16.5 16C17.8807 16 19 17.1193 19 18.5Z"/><path d="M19 5.5C19 6.88071 17.8807 8 16.5 8C15.1193 8 14 6.88071 14 5.5C14 4.11929 15.1193 3 16.5 3C17.8807 3 19 4.11929 19 5.5Z"/></g></svg>');
+}
+
+.icon.shared {
+	background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M17 3.002a2.998 2.998 0 1 1-2.148 5.09l-5.457 3.12a3 3 0 0 1 0 1.577l5.458 3.119a2.998 2.998 0 1 1-.746 1.304l-5.457-3.12a2.998 2.998 0 1 1 0-4.184l5.457-3.12A3 3 0 0 1 17 3.003"/></svg>');
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }

@@ -7,12 +7,12 @@
 * Navigation between images with buttons and keyboard
 * Fix or remove dark theme
 * Change "OK" action buttons to have an actionable verb (eg. "Delete", "Rename", etc.)
+* Rename "Close" button to "Cancel" for delete/rename/share/etc dialogs
 
 Host features:
 
 * Support WebDAV SEARCH method, see https://docs.nextcloud.com/server/stable/developer_manual/client_apis/WebDAV/search.html
 	* Also support for full-text search using `d:contains`: https://greenbytes.de/tech/specs/draft-reschke-webdav-search-04.html#rfc.section.5.15
-* Support for options.has_trash to have different dialogs/messages if the server puts files in trash
 * Support custom message when deleting a file / folder : "Seul un membre administrateur pourra récupérer le fichier dans la corbeille."
 * Support for basic NextCloud sharing API
 * Support for colors from NextCloud capabilities
