@@ -3,7 +3,6 @@
 * Recursive download of directories in Zip file
 * Display old file name when renaming
 * Display more visible warning when deleting a folder "Tous les sous-dossiers et fichiers de ce dossier seront placés à la corbeille !"
-* Add breadcrumbs navigation
 * Navigation between images with buttons and keyboard
 * Fix or remove dark theme
 * Change "OK" action buttons to have an actionable verb (eg. "Delete", "Rename", etc.)

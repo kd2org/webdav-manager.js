@@ -364,6 +364,34 @@ dialog form > div {
 	text-align: center;
 }
 
+.breadcrumbs {
+	display: flex;
+	flex-wrap: wrap;
+	padding: .3em;
+	gap: .5em;
+	height: 1.5em;
+}
+
+.breadcrumbs a {
+	font-size: .8em;
+	border: 1px solid var(--g2-color);
+	padding: .2em .4em;
+	border-radius: .3em;
+}
+
+.breadcrumbs a:last-of-type {
+	border-color: var(--g3-color);
+	background-color: var(--g1-color);
+}
+
+.breadcrumbs span {
+	color: var(--darkgrey-color);
+}
+
+.breadcrumbs span:last-of-type {
+	display: none;
+}
+
 .quota, .search {
 	display: flex;
 	justify-content: center;
