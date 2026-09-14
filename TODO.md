@@ -1,5 +1,6 @@
 # Minimal
 
+* Change URL of parent window when switching folders
 * Recursive download of directories in Zip file
 * Display old file name when renaming
 * Display more visible warning when deleting a folder "Tous les sous-dossiers et fichiers de ce dossier seront placés à la corbeille !"

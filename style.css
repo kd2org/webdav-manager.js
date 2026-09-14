@@ -146,8 +146,9 @@ main th .icon b:empty {
 }
 
 main td.check {
-	width: 1.5em;
-	text-align: center;
+	width: 1.7em;
+	padding-left: .7rem;
+	text-align: left;
 }
 
 main td.check input {
@@ -176,6 +177,7 @@ main td.buttons {
 main td.buttons div {
 	display: flex;
 	justify-content: end;
+	gap: .4em;
 }
 
 main tbody tr:nth-child(even) {
@@ -269,7 +271,6 @@ td.date {
 input[type=button], input[type=submit] {
 	font-size: 1.2em;
 	padding: .3em .5em;
-	margin: .2em .3em;
 	border: none;
 	background: var(--g2-color);
 	border-radius: .2em;
@@ -367,7 +368,7 @@ dialog form > div {
 .breadcrumbs {
 	display: flex;
 	flex-wrap: wrap;
-	padding: .3em;
+	padding: .3em .7rem;
 	gap: .5em;
 	height: 1.5em;
 }
@@ -444,14 +445,15 @@ dialog form > div {
 .toolbar {
 	display: flex;
 	justify-content: space-between;
-	margin: .5em;
-	margin-bottom: 0;
+	margin: 0 .7rem;
+	margin-top: .5rem;
 	position: relative;
 }
 
 .toolbar .buttons {
 	display: flex;
 	flex-wrap: wrap;
+	gap: .3em;
 }
 
 .toolbar .selection {
@@ -465,7 +467,7 @@ dialog form > div {
 	background: var(--bg-color);
 	z-index: 100;
 	box-shadow: 0px 0px 5px var(--active-color);
-	padding: .2em;
+	padding: .5rem .7rem;
 }
 
 .toolbar .selection .cancel {
@@ -901,24 +903,27 @@ body.gallery main thead {
 }
 
 body.gallery main thead tr {
-	flex-grow: 1;
 	display: flex;
-	justify-content: stretch;
-	align-items: stretch;
+	justify-content: end;
+	align-items: center;
 	gap: .5em;
+	width: 100%;
 }
 
 body.gallery main thead td {
-	flex-grow: 1;
 	display: flex;
 	align-items: center;
 	justify-content: start;
-	padding: 0 .5em;
-	text-align: center;
+	text-align: left;
+	min-width: 5em;
 }
 
-body.gallery main thead td.check, body.gallery main thead td:last-child {
-	flex-grow: 0;
+body.gallery main thead td:last-of-type {
+	display: none;
+}
+
+body.gallery main thead td.check {
+	flex-grow: 1;
 }
 
 body.gallery main tbody {
