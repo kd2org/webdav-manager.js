@@ -1,5 +1,7 @@
 # Minimal
 
+* When clicking a file, instead of downloading it, display action buttons (with preview if image / PDF / etc.), also add previous/next buttons
+* in WOPI/edit
 * Change URL of parent window when switching folders
 * Recursive download of directories in Zip file
 * Display old file name when renaming
@@ -9,11 +11,12 @@
 
 Host features:
 
-* Support listing and deleting shares
+* Support listing and deleting shares: https://docs.nextcloud.com/server/stable/developer_manual/client_apis/OCS/ocs-share-api.html#get-shares-from-a-specific-file-or-folder
 * Support WebDAV SEARCH method, see https://docs.nextcloud.com/server/stable/developer_manual/client_apis/WebDAV/search.html
 	* Also support for full-text search using `d:contains`: https://greenbytes.de/tech/specs/draft-reschke-webdav-search-04.html#rfc.section.5.15
 * Support custom message when deleting a file / folder : "Seul un membre administrateur pourra récupérer le fichier dans la corbeille."
 * Support for colors from NextCloud capabilities
+* Custom navigation menu instead of "My files" in breadcrumbs
 * Custom actions for one file (eg. list file versions)
 * Custom actions for selected files (eg. assign files to accounting)
 * Better integration if living inside an iframe
@@ -23,6 +26,7 @@ Host features:
 
 General:
 
+* Use SVG symbols for icons to allow custom icon colors https://www.alsacreations.com/tuto/lire/1944-appliquer-des-styles-css-a-svg.html
 * Cancel download of selected files / zip during download
 * Export markdown preview to HTML
 * Drag and drop to move files

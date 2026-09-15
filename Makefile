@@ -1,6 +1,6 @@
 #PHONY:= browser.min.js
 
-browser.min.js: lib/*.js style.css vendor/prism_editor.*
+browser.min.js: lib/*.js style.css vendor/prism_editor.* langs/*.js
 	echo -n 'var css = `' > mini.js
 	cat style.css | sed -E 's/^\s+//g' | tr -d '\n' >> mini.js
 	echo >> mini.js
