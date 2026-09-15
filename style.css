@@ -296,17 +296,18 @@ main td input[type=button], main td input[type=submit] {
 	font-size: 1em;
 }
 
-input[type=text], textarea {
-	font-size: 1.2em;
+input[type=text], textarea, select, input[type=password] {
+	font-size: 1.2rem;
 	padding: .3em .5em;
 	border: none;
 	background: var(--bg-color);
 	border-radius: .2em;
 	width: calc(100% - 1em);
 	color: var(--fg-color);
+	border: 1px solid var(--g2-color);
 }
 
-input:focus, .editor > textarea:focus, .dual:has(textarea:focus) {
+input:focus, select:focus, .editor > textarea:focus, .dual:has(textarea:focus) {
 	box-shadow: 0px 0px 5px var(--active-color);
 	outline: 1px solid var(--active-color);
 }
@@ -315,6 +316,59 @@ input[type=button]:hover, input[type=submit]:hover {
 	color: var(--active-color);
 	background-color: var(--bg-color);
 	box-shadow: 0px 0px 5px var(--fg-color);
+}
+
+form dl dt label {
+	font-weight: bold;
+}
+
+form dl dt small {
+	font-size: .9em;
+	color: var(--darkgrey-color);
+}
+
+form dl {
+	text-align: left;
+}
+
+form p.help {
+	font-size: .9em;
+	color: var(--darkgrey-color);
+	margin: .4em 0;
+}
+
+form dl dd {
+	margin: .5em 1em;
+}
+
+form dl dd.help {
+	font-size: .9em;
+	color: var(--darkgrey-color);
+}
+
+form fieldset {
+	border: 1px solid var(--g2-color);
+	border-radius: .5em;
+	padding: .3em 1em;
+}
+
+fieldset legend {
+	padding: .3em .6em;
+	font-size: 1.2em;
+}
+
+fieldset p.url {
+	display: flex;
+	flex-direction: column;
+	gap: .5em;
+}
+
+fieldset p.url input[type=text] {
+	text-align: center;
+}
+
+form .password input {
+	max-width: 15em;
 }
 
 .close {

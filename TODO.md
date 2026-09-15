@@ -9,10 +9,10 @@
 
 Host features:
 
+* Support listing and deleting shares
 * Support WebDAV SEARCH method, see https://docs.nextcloud.com/server/stable/developer_manual/client_apis/WebDAV/search.html
 	* Also support for full-text search using `d:contains`: https://greenbytes.de/tech/specs/draft-reschke-webdav-search-04.html#rfc.section.5.15
 * Support custom message when deleting a file / folder : "Seul un membre administrateur pourra récupérer le fichier dans la corbeille."
-* Support for basic NextCloud sharing API
 * Support for colors from NextCloud capabilities
 * Custom actions for one file (eg. list file versions)
 * Custom actions for selected files (eg. assign files to accounting)
