@@ -8,6 +8,7 @@
 * Display more visible warning when deleting a folder "Tous les sous-dossiers et fichiers de ce dossier seront placés à la corbeille !"
 * Navigation between images with buttons and keyboard
 * Fix or remove dark theme
+* Open file / WOPI editor if URL is a file
 
 Host features:
 
@@ -17,7 +18,8 @@ Host features:
 * Support custom message when deleting a file / folder : "Seul un membre administrateur pourra récupérer le fichier dans la corbeille."
 * Support for colors from NextCloud capabilities
 * Custom navigation menu instead of "My files" in breadcrumbs
-* Custom actions for one file (eg. list file versions)
+* Versioning button for files
+	* Support for versioning URL, that can be embedded via 'revisionhistory' parameter in collabora UI
 * Custom actions for selected files (eg. assign files to accounting)
 * Better integration if living inside an iframe
 * Loading of resized image when previewing image (NextCloud API)
@@ -48,3 +50,7 @@ NextCloud features:
 * Support for NextCloud upload by chunks for large files (maybe?)
 * Support for virtual folders (eg. last modified files) -> the server just provides a WebDAV endpoint, but it clearly says in PROPFIND that this is virtual, so that the manager shows the actual location of the file
 * Custom folder colors?
+
+Collabora:
+
+* Renew tokens when they are about to expire: https://sdk.collaboraonline.com/docs/How_to_integrate.html#token-expiration
