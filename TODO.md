@@ -1,8 +1,6 @@
 # Minimal
 
 * When clicking a file, instead of downloading it, display action buttons (with preview if image / PDF / etc.), also add previous/next buttons
-* in WOPI/edit
-* Change URL of parent window when switching folders
 * Recursive download of directories in Zip file
 * Display old file name when renaming
 * Display more visible warning when deleting a folder "Tous les sous-dossiers et fichiers de ce dossier seront placés à la corbeille !"
